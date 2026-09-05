@@ -170,26 +170,65 @@ const CASES_DATABASE = [
 ];
 
 // ==========================================
-// 4. СОСТОЯНИЕ И LOCALSTORAGE
+// 4. НАДЕЖНОЕ СОСТОЯНИЕ И LOCALSTORAGE
 // ==========================================
-let state = {
+
+// Функция генерации уникального ID пользователя (если его нет)
+function generateUserId() {
+    return 'user_' + Math.random().toString(36).substr(2, 9);
+}
+
+// Значения по умолчанию для НОВОГО игрока
+const DEFAULT_STATE = {
+    userId: generateUserId(),
+    userName: "NerK0ze_YT",
     balance: 115,
     inventory: [],
     casesOpened: 0,
-    userName: "Игрок #???",
-    history: []
+    history: [],
+    friends: [] // По умолчанию 0 друзей. Если нужно для теста — нажмите кнопку добавления
 };
 
+// Глобальная переменная состояния
+let state = { ...DEFAULT_STATE };
+
+// Функция загрузки данных из браузера
 function loadState() {
-    const saved = localStorage.getItem('dropzone_state');
-    if (saved) {
-        try { state = JSON.parse(saved); } catch(e) {}
+    try {
+        const savedData = localStorage.getItem('dropzone_state');
+        if (savedData) {
+            const parsed = JSON.parse(savedData);
+            
+            // Объединяем дефолтные значения с сохраненными (чтобы новые поля не сбрасывались)
+            state = {
+                ...DEFAULT_STATE,
+                ...parsed
+            };
+
+            // Гарантируем, что массив друзей и инвентарь существуют
+            if (!Array.isArray(state.friends)) state.friends = [];
+            if (!Array.isArray(state.inventory)) state.inventory = [];
+            if (!Array.isArray(state.history)) state.history = [];
+            if (!state.userId) state.userId = generateUserId();
+        } else {
+            // Если игрок впервые на сайте — сохраняем стартовое состояние
+            saveState();
+        }
+    } catch (e) {
+        console.error("Ошибка при загрузке сохранения:", e);
+        state = { ...DEFAULT_STATE };
     }
+
     updateUI();
 }
 
+// Функция СОХРАНЕНИЯ данных в браузер
 function saveState() {
-    localStorage.setItem('dropzone_state', JSON.stringify(state));
+    try {
+        localStorage.setItem('dropzone_state', JSON.stringify(state));
+    } catch (e) {
+        console.error("Не удалось сохранить данные:", e);
+    }
     updateUI();
 }
 
@@ -1220,12 +1259,31 @@ window.adminBanPlayer = function() {
     }
 };
 
-localStorage.clear();
+function updateUI() {
+    const totalItems = state.inventory.reduce((a, b) => a + (b.count || 1), 0);
 
-localStorage.removeItem("inventory");
+    // Элементы баланса и статистики
+    if (document.getElementById('user-balance')) document.getElementById('user-balance').innerText = state.balance;
+    if (document.getElementById('inv-count')) document.getElementById('inv-count').innerText = totalItems;
+    if (document.getElementById('profile-name')) document.getElementById('profile-name').innerText = state.userName;
+    
+    // Отображение ID пользователя
+    if (document.getElementById('user-id-display')) {
+        document.getElementById('user-id-display').innerText = state.userId;
+    }
 
-let inventory = [];
-let balance = 1000;
+    // Отображение количества друзей
+    if (document.getElementById('friends-count')) {
+        document.getElementById('friends-count').innerText = state.friends.length;
+    }
+
+    if (document.getElementById('stat-balance')) document.getElementById('stat-balance').innerText = `${state.balance} R`;
+    if (document.getElementById('stat-cases')) document.getElementById('stat-cases').innerText = state.casesOpened;
+    if (document.getElementById('stat-items')) document.getElementById('stat-items').innerText = totalItems;
+
+    renderInventory();
+    renderRarityStats();
+}
 
 
 
