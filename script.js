@@ -1220,35 +1220,14 @@ window.adminBanPlayer = function() {
     }
 };
 
-localStorage.setItem("balance", 1000);
-localStorage.setItem("inventory", JSON.stringify([]));
+localStorage.clear();
 
+localStorage.removeItem("inventory");
 
-let balance = 1000;
 let inventory = [];
-
-let balance1 = Number(localStorage.getItem("balance")) || 1000;
-
-let inventory1 = JSON.parse(
-    localStorage.getItem("inventory") || "[]"
-);
-
-function saveGame() {
-    localStorage.setItem("balance", balance);
-    localStorage.setItem("inventory", JSON.stringify(inventory));
-}
+let balance = 1000;
 
 
-inventory.push(newSkin);
-balance -= casePrice;
-
-saveGame();
-
-balance += skin.price;
-
-inventory.splice(index, 1);
-
-saveGame();
 
 
 
