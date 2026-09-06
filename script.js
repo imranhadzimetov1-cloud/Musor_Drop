@@ -999,9 +999,10 @@ function renderCasinoInventory() {
     
     if (!state.inventory || state.inventory.length === 0) {
         container.innerHTML = `
-            <div style="grid-column:1/-1; text-align:center; padding:40px; background:#1a1d27; border-radius:16px; border:2px dashed #2a2d3a;">
-                <div style="font-size:48px;">🎒</div>
-                <div style="color:#94a3b8;">Нет скинов для ставок</div>
+            <div style="grid-column:1/-1; text-align:center; padding:30px; background:#1a1d27; border-radius:16px; border:2px dashed #2a2d3a;">
+                <div style="font-size:40px;">🎒</div>
+                <div style="color:#94a3b8; font-size:14px; margin-top:6px;">Нет скинов для ставок</div>
+                <div style="color:#64748b; font-size:12px;">Открой кейсы или купи в магазине</div>
             </div>
         `;
         return;
@@ -1011,26 +1012,28 @@ function renderCasinoInventory() {
         const skin = SKINS_DATABASE.find(s => s.id === item.id);
         const img = skin ? skin.img : item.img;
         const price = skin ? skin.price : item.price;
+        const weapon = item.weapon || 'Скин';
         let shortName = item.name;
-        if (item.name.includes('|')) {
+        if (item.name && item.name.includes('|')) {
             shortName = item.name.split('|')[1].trim();
         }
         if (!shortName || shortName.length < 2) {
-            shortName = item.name;
+            shortName = item.name || weapon;
         }
         const isSelected = selectedSkinForCasino && selectedSkinForCasino.id === item.id;
+        const rarityColor = getRarityColor(item.rarity);
         
         return `
-            <div class="casino-card rarity-${item.rarity} ${isSelected ? 'selected' : ''}" onclick="selectSkinForCasino(${item.id})" style="background: linear-gradient(145deg, #1a1d27, #13151e); border-radius:14px; padding:14px 10px; text-align:center; border:2px solid ${isSelected ? '#f59e0b' : '#2a2d3a'}; position:relative; cursor:pointer; transition:all 0.3s;">
-                <div style="height:4px; border-radius:4px 4px 0 0; background:${getRarityColor(item.rarity)};"></div>
-                ${item.count > 1 ? `<div style="position:absolute; top:8px; right:8px; background:#f59e0b; color:#000; font-size:11px; font-weight:800; padding:2px 8px; border-radius:20px;">x${item.count}</div>` : ''}
-                <div style="font-size:11px; color:#8a99ad; margin-top:4px;">${item.weapon}</div>
-                <div style="font-size:13px; font-weight:700; margin:3px 0; color:#fff;">${shortName}</div>
-                <div style="height:65px; display:flex; align-items:center; justify-content:center; margin:6px 0;">
-                    <img src="${img}" style="max-height:60px; max-width:100%; object-fit:contain;" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22100%22 height=%22100%22%3E%3Crect width=%22100%22 height=%22100%22 fill=%22%231a1d27%22/%3E%3Ctext x=%2250%22 y=%2250%22 text-anchor=%22middle%22 dy=%22.3em%22 fill=%22%236b7280%22 font-size=%2212%22%3E${item.weapon}%3C/text%3E%3C/svg%3E';">
+            <div class="casino-card rarity-${item.rarity} ${isSelected ? 'selected' : ''}" onclick="selectSkinForCasino(${item.id})">
+                <div class="rarity-bar" style="background:${rarityColor};"></div>
+                ${item.count > 1 ? `<div class="skin-count-badge">x${item.count}</div>` : ''}
+                <div class="skin-weapon">${weapon}</div>
+                <div class="skin-title">${shortName}</div>
+                <div class="skin-img-box">
+                    <img src="${img}" alt="${item.name}" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22100%22 height=%22100%22%3E%3Crect width=%22100%22 height=%22100%22 fill=%22%231a1d27%22/%3E%3Ctext x=%2250%22 y=%2250%22 text-anchor=%22middle%22 dy=%22.3em%22 fill=%22%236b7280%22 font-size=%2212%22%3E${weapon}%3C/text%3E%3C/svg%3E';">
                 </div>
-                <div style="font-size:14px; font-weight:800; color:#f59e0b; margin:4px 0;">${price} R</div>
-                <button onclick="event.stopPropagation(); selectSkinForCasino(${item.id});" style="background:${isSelected ? 'linear-gradient(135deg, #f59e0b, #d97706)' : '#2a2d3a'}; color:${isSelected ? '#000' : '#94a3b8'}; border:none; padding:8px; border-radius:8px; font-size:12px; font-weight:700; cursor:pointer; width:100%;">
+                <div class="skin-price">${price} R</div>
+                <button class="select-btn" onclick="event.stopPropagation(); selectSkinForCasino(${item.id});">
                     ${isSelected ? '✅ Выбран' : '🎯 Выбрать'}
                 </button>
             </div>
