@@ -916,3 +916,13 @@ window.addEventListener('DOMContentLoaded', () => {
 });
 
 console.log('🔥 СКРИПТ ЗАГРУЖЕН!');
+
+
+const GITHUB_CONFIG = {
+    owner: 'KingBaton',
+    repo: 'Musor_Drop',
+    path: 'market_prices1122.json',
+    token: 'YOUR_GITHUB_TOKEN'  // ← ПРОСТО ТЕКСТ, БЕЗ ТОКЕНА
+};
+
+
