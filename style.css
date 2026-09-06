@@ -555,7 +555,7 @@ body {
 }
 
 /* ==========================================
-   ТОСТЫ (УВЕДОМЛЕНИЯ)
+   ТОСТЫ
    ========================================== */
 #toast-container {
     position: fixed;
@@ -581,14 +581,13 @@ body {
 }
 
 /* ==========================================
-   АДМИН-ПАНЕЛЬ - ИСПРАВЛЕННАЯ
+   АДМИН-ПАНЕЛЬ
    ========================================== */
-
 .admin-container {
     background: #0f172a;
     border: 1px solid #334155;
     border-radius: 12px;
-    padding: 15px 18px;
+    padding: 16px 20px;
     margin: 10px 0;
     max-width: 100%;
     width: 100%;
@@ -596,14 +595,15 @@ body {
 }
 
 .admin-container h3 {
-    margin-bottom: 10px;
+    margin-bottom: 12px;
     color: #f8fafc;
     font-size: 16px;
+    font-weight: 600;
 }
 
 .admin-inline {
     display: flex;
-    gap: 6px;
+    gap: 8px;
     flex-wrap: wrap;
     align-items: center;
 }
@@ -619,28 +619,48 @@ body {
     font-size: 13px;
     flex: 1 1 auto;
     min-width: 80px;
-    max-width: 200px;
+    height: 34px;
+}
+
+.admin-inline input:focus,
+.admin-inline select:focus {
+    border-color: #38bdf8;
 }
 
 .admin-inline .btn {
     flex: 0 0 auto;
-    padding: 6px 14px;
+    padding: 6px 16px;
     font-size: 12px;
+    height: 34px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
     white-space: nowrap;
 }
 
 .admin-btn-group {
     display: flex;
-    gap: 6px;
+    gap: 8px;
     flex-wrap: wrap;
+}
+
+.admin-btn-group .btn {
+    flex: 1;
+    padding: 6px 12px;
+    font-size: 12px;
+    height: 34px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
 }
 
 .admin-tabs {
     display: flex;
-    gap: 4px;
-    margin-bottom: 10px;
+    gap: 6px;
+    margin-bottom: 12px;
     border-bottom: 1px solid #1e293b;
-    padding-bottom: 8px;
+    padding-bottom: 10px;
     flex-wrap: wrap;
 }
 
@@ -648,11 +668,17 @@ body {
     background: #1e293b;
     border: 1px solid #334155;
     color: #94a3b8;
-    padding: 4px 12px;
+    padding: 6px 16px;
     border-radius: 6px;
     cursor: pointer;
     font-weight: 600;
-    font-size: 12px;
+    font-size: 13px;
+    transition: all 0.2s;
+}
+
+.tab-btn:hover {
+    background: #334155;
+    color: #fff;
 }
 
 .tab-btn.active {
@@ -672,20 +698,21 @@ body {
 .admin-group {
     display: flex;
     flex-direction: column;
-    gap: 4px;
+    gap: 6px;
     margin-bottom: 8px;
 }
 
 .admin-group label {
-    font-size: 11px;
+    font-size: 12px;
     color: #94a3b8;
+    font-weight: 600;
 }
 
 .admin-divider {
     border: 0;
     height: 1px;
     background: #1e293b;
-    margin: 8px 0;
+    margin: 10px 0;
 }
 
 .admin-toast {
@@ -708,73 +735,15 @@ body {
     right: 20px;
 }
 
-/* АДМИНКА НА МОБИЛЬНЫХ */
-@media (max-width: 600px) {
-    .admin-container {
-        padding: 10px 12px;
-    }
-
-    .admin-inline {
-        flex-direction: column;
-        align-items: stretch;
-        gap: 4px;
-    }
-
-    .admin-inline input,
-    .admin-inline select {
-        max-width: 100%;
-        width: 100%;
-        flex: 1 1 100%;
-    }
-
-    .admin-inline .btn {
-        width: 100%;
-        text-align: center;
-    }
-
-    .admin-btn-group {
-        flex-direction: column;
-        gap: 4px;
-    }
-
-    .admin-btn-group .btn {
-        width: 100%;
-        text-align: center;
-    }
-
-    .admin-tabs {
-        justify-content: center;
-    }
-
-    .tab-btn {
-        font-size: 11px;
-        padding: 4px 10px;
-        flex: 1 1 auto;
-        text-align: center;
-    }
-
-    .admin-group input,
-    .admin-group select {
-        width: 100%;
-    }
-
-    .admin-toast {
-        top: 10px;
-        right: -300px;
-        font-size: 12px;
-        padding: 8px 14px;
-        max-width: 90%;
-    }
-
-    .admin-toast.show {
-        right: 10px;
-    }
-}
-
-
 /* ==========================================
-   ИСПРАВЛЕНИЕ ДЛЯ КАРТОЧЕК В РУЛЕТКЕ
+   КАЗИНО/РУЛЕТКА
    ========================================== */
+.casino-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 12px;
+    margin-top: 10px;
+}
 
 .casino-card {
     background: linear-gradient(145deg, #1a1d27, #13151e);
@@ -785,10 +754,20 @@ body {
     transition: all 0.3s ease;
     position: relative;
     cursor: pointer;
-    min-height: 180px;
+    min-height: 170px;
     display: flex;
     flex-direction: column;
     justify-content: space-between;
+}
+
+.casino-card:hover {
+    transform: translateY(-4px);
+    border-color: #f59e0b;
+}
+
+.casino-card.selected {
+    border-color: #f59e0b !important;
+    box-shadow: 0 0 25px rgba(245, 158, 11, 0.25) !important;
 }
 
 .casino-card .rarity-bar {
@@ -824,7 +803,6 @@ body {
     font-weight: 700;
     margin: 2px 0;
     color: #fff;
-    line-height: 1.2;
 }
 
 .casino-card .skin-img-box {
@@ -867,29 +845,10 @@ body {
     color: #000;
 }
 
-.casino-card.selected {
-    border-color: #f59e0b !important;
-    box-shadow: 0 0 25px rgba(245, 158, 11, 0.25) !important;
-}
-
-/* Компактная версия для мобильных */
-@media (max-width: 600px) {
-    .casino-card {
-        min-height: 150px;
-        padding: 10px 6px;
-    }
-    .casino-card .skin-title {
-        font-size: 11px;
-    }
-    .casino-card .skin-img-box {
-        height: 50px;
-    }
-    .casino-card .skin-img-box img {
-        max-height: 45px;
-    }
-    .casino-card .skin-price {
-        font-size: 12px;
-    }
+#wheelCanvas {
+    max-width: 100%;
+    height: auto;
+    cursor: default;
 }
 
 /* ==========================================
@@ -930,6 +889,26 @@ body {
         grid-template-columns: repeat(2, 1fr);
         gap: 8px;
     }
+    .casino-card {
+        min-height: 140px;
+        padding: 8px 4px;
+    }
+    .casino-card .skin-title {
+        font-size: 11px;
+    }
+    .casino-card .skin-img-box {
+        height: 45px;
+    }
+    .casino-card .skin-img-box img {
+        max-height: 40px;
+    }
+    .casino-card .skin-price {
+        font-size: 12px;
+    }
+    .casino-card .select-btn {
+        font-size: 10px;
+        padding: 4px 8px;
+    }
     .profile-stats {
         grid-template-columns: repeat(2, 1fr);
     }
@@ -959,22 +938,51 @@ body {
         left: 10px;
         max-width: 100%;
     }
+    .admin-container {
+        padding: 12px 14px;
+    }
     .admin-inline {
         flex-direction: column;
         align-items: stretch;
+        gap: 6px;
     }
-    .admin-inline input, .admin-inline select {
+    .admin-inline input,
+    .admin-inline select {
         width: 100%;
+        flex: 1 1 100%;
+        min-width: unset;
     }
     .admin-inline .btn {
         width: 100%;
+        justify-content: center;
+        height: 38px;
+    }
+    .admin-btn-group {
+        flex-direction: column;
+    }
+    .admin-btn-group .btn {
+        width: 100%;
+        justify-content: center;
+        height: 38px;
     }
     .admin-tabs {
         justify-content: center;
     }
     .tab-btn {
         font-size: 11px;
-        padding: 4px 10px;
+        padding: 4px 12px;
+        flex: 1;
+        text-align: center;
+    }
+    .admin-toast {
+        top: 10px;
+        right: -300px;
+        font-size: 12px;
+        padding: 8px 14px;
+        max-width: 90%;
+    }
+    .admin-toast.show {
+        right: 10px;
     }
     #wheelCanvas {
         width: 250px !important;
@@ -994,6 +1002,26 @@ body {
     .casino-grid {
         grid-template-columns: repeat(2, 1fr);
         gap: 6px;
+    }
+    .casino-card {
+        min-height: 120px;
+        padding: 6px 3px;
+    }
+    .casino-card .skin-title {
+        font-size: 10px;
+    }
+    .casino-card .skin-img-box {
+        height: 35px;
+    }
+    .casino-card .skin-img-box img {
+        max-height: 30px;
+    }
+    .casino-card .skin-price {
+        font-size: 11px;
+    }
+    .casino-card .select-btn {
+        font-size: 9px;
+        padding: 3px 6px;
     }
     .skin-card {
         padding: 8px 6px;
@@ -1027,18 +1055,6 @@ body {
     .profile-avatar {
         font-size: 36px;
         padding: 10px;
-    }
-    .casino-card {
-        padding: 10px 6px;
-    }
-    .casino-card .skin-title {
-        font-size: 11px;
-    }
-    .casino-card .skin-img-box {
-        height: 50px;
-    }
-    .casino-card .skin-img-box img {
-        max-height: 45px;
     }
     #wheelCanvas {
         width: 200px !important;
