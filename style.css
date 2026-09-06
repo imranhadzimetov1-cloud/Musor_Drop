@@ -1061,33 +1061,3 @@ body {
         height: 200px !important;
     }
 }
-
-/* ==========================================
-   ПЕРЕЛИВАЮЩИЙСЯ СКИН XABIB
-   ========================================== */
-
-/* Карточка скина Xabib в магазине и инвентаре */
-.skin-card.rarity-SECRET:has(.skin-title:contains("Xabib")) {
-    animation: xabibCardGlow 2s ease-in-out infinite;
-    border-color: #ffd700 !important;
-    box-shadow: 0 0 30px rgba(255, 215, 0, 0.3);
-}
-
-/* Анимация свечения карточки */
-@keyframes xabibCardGlow {
-    0% { box-shadow: 0 0 20px rgba(255, 0, 0, 0.3); }
-    25% { box-shadow: 0 0 30px rgba(255, 200, 0, 0.4); }
-    50% { box-shadow: 0 0 40px rgba(0, 255, 100, 0.5); }
-    75% { box-shadow: 0 0 30px rgba(0, 100, 255, 0.4); }
-    100% { box-shadow: 0 0 20px rgba(255, 0, 200, 0.3); }
-}
-
-/* Анимация рамки карточки Xabib */
-.skin-card.rarity-SECRET:has(.skin-title:contains("Xabib"))::before {
-    animation: xabibBorder 3s linear infinite;
-}
-
-@keyframes xabibBorder {
-    0% { background: linear-gradient(0deg, #ff0000, #ff8800, #ffff00, #00ff00, #0088ff, #8800ff, #ff0000); }
-    100% { background: linear-gradient(360deg, #ff0000, #ff8800, #ffff00, #00ff00, #0088ff, #8800ff, #ff0000); }
-}
