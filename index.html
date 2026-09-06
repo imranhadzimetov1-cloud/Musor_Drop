@@ -2,7 +2,7 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>DROPZONE — Виртуальные Кейсы</title>
     <link rel="stylesheet" href="style.css">
 </head>
@@ -40,7 +40,7 @@
 
         <!-- ВКЛАДКА: МАГАЗИН -->
         <section id="tab-shop" class="tab-content">
-            <h2 class="section-title">КАТАЛОГ ВСЕХ СКИНОФ (<span id="shop-total-count">0</span>)</h2>
+            <h2 class="section-title">КАТАЛОГ ВСЕХ СКИНОВ (<span id="shop-total-count">0</span>)</h2>
             <div class="shop-controls">
                 <input type="text" id="shop-search" placeholder="Поиск по названию или оружию..." class="input-field">
                 <div class="filter-buttons">
@@ -69,6 +69,19 @@
             <div class="inventory-grid" id="inventory-grid"></div>
         </section>
 
+        <!-- ВКЛАДКА: КАЗИК -->
+        <section id="tab-casino" class="tab-content">
+            <h2 class="section-title">🎰 КАЗИК (Удвой или потеряй)</h2>
+            <p style="color:#8a99ad; margin-bottom:15px;">
+                Поставьте свой скин на кон! При победе вы получите его в двойном размере, при проигрыше — потеряете.
+            </p>
+            <div id="casino-inventory" class="inventory-grid"></div>
+            <div id="casino-result" style="display:none; margin-top:20px; padding:20px; background:#1a1d27; border-radius:12px; text-align:center; border:2px solid #4b69ff;">
+                <h3 id="casino-result-text" style="font-size:18px;"></h3>
+                <button class="btn" onclick="document.getElementById('casino-result').style.display='none';" style="margin-top:12px; width:auto; padding:10px 30px;">Закрыть</button>
+            </div>
+        </section>
+
         <!-- ВКЛАДКА: ПРОФИЛЬ -->
         <section id="tab-profile" class="tab-content">
             <h2 class="section-title">ПРОФИЛЬ ПОЛЬЗОВАТЕЛЯ</h2>
@@ -81,36 +94,30 @@
                     </div>
                 </div>
                 <!-- БЛОК СИСТЕМЫ ДРУЗЕЙ -->
-<div id="friends-section" style="background: #0f172a; border: 1px solid #334155; border-radius: 12px; padding: 20px; margin: 20px 0; color: white;">
-    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; margin-bottom: 15px;">
-        <h3 style="margin: 0; color: #38bdf8; display: flex; align-items: center; gap: 8px;">
-            👥 Друзья 
-            <span id="friends-count" style="font-size: 14px; background: #1e293b; padding: 2px 8px; border-radius: 10px; color: #94a3b8;">0</span>
-        </h3>
-        <!-- Твой уникальный ID -->
-        <div style="background: #1e293b; padding: 6px 12px; border-radius: 8px; border: 1px solid #475569; font-size: 13px;">
-            Мой ID: <strong id="my-player-id" style="color: #4ade80;">#000000</strong>
-            <button onclick="copyMyId()" style="background: none; border: none; color: #38bdf8; cursor: pointer; margin-left: 6px; font-size: 12px;">📋</button>
-        </div>
-    </div>
+                <div id="friends-section" style="background: #0f172a; border: 1px solid #334155; border-radius: 12px; padding: 20px; margin: 20px 0; color: white;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; margin-bottom: 15px;">
+                        <h3 style="margin: 0; color: #38bdf8; display: flex; align-items: center; gap: 8px;">
+                            👥 Друзья 
+                            <span id="friends-count" style="font-size: 14px; background: #1e293b; padding: 2px 8px; border-radius: 10px; color: #94a3b8;">0</span>
+                        </h3>
+                        <div style="background: #1e293b; padding: 6px 12px; border-radius: 8px; border: 1px solid #475569; font-size: 13px;">
+                            Мой ID: <strong id="my-player-id" style="color: #4ade80;">#000000</strong>
+                            <button onclick="copyMyId()" style="background: none; border: none; color: #38bdf8; cursor: pointer; margin-left: 6px; font-size: 12px;">📋</button>
+                        </div>
+                    </div>
 
-    <!-- Поиск и добавление друга -->
-    <div style="display: flex; gap: 8px; margin-bottom: 15px;">
-        <input type="text" id="friend-id-input" placeholder="Введите ID друга (напр. #839210)" style="flex: 1; padding: 10px; border-radius: 6px; background: #1e293b; border: 1px solid #334155; color: white;">
-        <button class="btn" onclick="sendFriendRequest()" style="background: #38bdf8; color: #0f172a; font-weight: bold; padding: 10px 16px;">Добавить</button>
-    </div>
+                    <div style="display: flex; gap: 8px; margin-bottom: 15px;">
+                        <input type="text" id="friend-id-input" placeholder="Введите ID друга (напр. #839210)" style="flex: 1; padding: 10px; border-radius: 6px; background: #1e293b; border: 1px solid #334155; color: white;">
+                        <button class="btn" onclick="sendFriendRequest()" style="background: #38bdf8; color: #0f172a; font-weight: bold; padding: 10px 16px;">Добавить</button>
+                    </div>
 
-    <!-- Входящие заявки -->
-    <div id="friend-requests-container" style="display: none; margin-bottom: 15px; background: #1e1b4b; border: 1px solid #6366f1; border-radius: 8px; padding: 10px;">
-        <div style="font-size: 12px; color: #a5b4fc; margin-bottom: 8px; font-weight: bold;">Заявки в друзья:</div>
-        <div id="friend-requests-list"></div>
-    </div>
+                    <div id="friend-requests-container" style="display: none; margin-bottom: 15px; background: #1e1b4b; border: 1px solid #6366f1; border-radius: 8px; padding: 10px;">
+                        <div style="font-size: 12px; color: #a5b4fc; margin-bottom: 8px; font-weight: bold;">Заявки в друзья:</div>
+                        <div id="friend-requests-list"></div>
+                    </div>
 
-    <!-- Список друзей -->
-    <div id="friends-list" style="display: flex; flex-direction: column; gap: 8px;">
-        <!-- Карточки друзей будут рендериться сюда -->
-    </div>
-</div>
+                    <div id="friends-list" style="display: flex; flex-direction: column; gap: 8px;"></div>
+                </div>
                 
                 <div class="profile-stats">
                     <div class="stat-box">
@@ -149,7 +156,6 @@
                 <div class="roulette-track" id="roulette-track"></div>
             </div>
 
-            <!-- Результат выигрыша -->
             <div class="win-result hidden" id="win-result">
                 <div class="win-light" id="win-light"></div>
                 <h3>ВЫ ВЫИГРАЛИ!</h3>
@@ -166,112 +172,96 @@
     <div id="toast-container"></div>
 
     <!-- ВЕРХНЯЯ ФОРМА АВТОРИЗАЦИИ -->
-<div class="admin-container" style="margin-bottom: 10px;">
-    <h3>🔒 Вход в Панель Администратора</h3>
-    <div class="admin-inline">
-        <input type="password" id="admin-login-pass" placeholder="Введите пароль...">
-        <button class="btn btn-primary" onclick="loginAdmin()">Войти</button>
-    </div>
-</div>
-
-<!-- СКРЫТАЯ ПАНЕЛЬ (ПОЯВИТСЯ ПОСЛЕ ПАРОЛЯ) -->
-<div id="admin-panel" class="admin-container" style="display: none;">
-    <h3>⚙️ Управление Биржей</h3>
-
-    <!-- Вкладки -->
-    <div class="admin-tabs">
-        <button class="tab-btn active" onclick="switchAdminTab('economy')">💰 Деньги</button>
-        <button class="tab-btn" onclick="switchAdminTab('players')">👥 Игроки и Баны</button>
-        <button class="tab-btn" onclick="switchAdminTab('market')">📈 Цены Рынка</button>
-    </div>
-
-    <!-- Вкладка 1: Деньги -->
-    <div id="tab-economy" class="admin-tab-content active">
-        <div class="admin-group">
-            <input type="number" id="admin-money-amount" value="5000" placeholder="Сумма (R)">
-            <div class="admin-btn-group">
-                <button class="btn btn-success" onclick="adminAddMoney()">💵 + Добавить</button>
-                <button class="btn btn-primary" onclick="adminSetMoney()">✏️ Установить</button>
-                <button class="btn btn-danger" onclick="adminResetMoney()">🔄 Сбросить в 0</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Вкладка 2: Выдача скинов и Баны -->
-    <div id="tab-players" class="admin-tab-content">
-        <div class="admin-group">
-            <label>Выдать скин себе в инвентарь:</label>
-            <div class="admin-inline">
-                <select id="admin-give-skin-select"></select>
-                <button class="btn btn-success" onclick="adminGiveSkin()">🎁 Выдать скин</button>
-            </div>
-        </div>
-        <hr class="admin-divider">
-        <div class="admin-group">
-            <label>Управление банами:</label>
-            <div class="admin-inline">
-                <input type="text" id="admin-target-id" placeholder="ID игрока (#123456)">
-                <button class="btn btn-danger" onclick="adminBanPlayer()">🚫 Забанить</button>
-                <button class="btn btn-secondary" onclick="adminUnbanPlayer()">Разбанить</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Вкладка 3: Рынок -->
-<div id="tab-market" class="admin-tab-content">
-    
-    <!-- СТАТУС АДМИНА -->
-    <div id="admin-status" style="padding:8px 12px; border-radius:6px; background:#1a1d27; margin-bottom:12px; text-align:center; font-weight:bold;">
-        ❌ Админ: Не авторизован
-    </div>
-
-    <!-- ВХОД/ВЫХОД АДМИНА -->
-    <div class="admin-inline" style="margin-bottom:12px;">
-        <button class="btn btn-primary" onclick="adminLogin()" style="flex:1;">🔑 Войти как админ</button>
-        <button class="btn btn-danger" onclick="adminLogout()" style="flex:1;">🚪 Выйти</button>
-    </div>
-
-    <hr class="admin-divider">
-
-    <div class="admin-group">
-        <label>Изменение цены предмета:</label>
+    <div class="admin-container" style="margin-bottom: 10px;">
+        <h3>🔒 Вход в Панель Администратора</h3>
         <div class="admin-inline">
-            <select id="admin-market-skin-select"></select>
-            <input type="number" id="admin-market-price-input" placeholder="Новая цена (R)">
-            <button class="btn btn-success" onclick="adminUpdateMarketPrice()">Применить</button>
+            <input type="password" id="admin-login-pass" placeholder="Введите пароль...">
+            <button class="btn btn-primary" onclick="loginAdmin()">Войти</button>
         </div>
     </div>
 
-    <div class="admin-btn-group" style="margin-top: 10px;">
-        <!-- СТАРЫЕ КНОПКИ (оставляем) -->
-        <button class="btn btn-primary" onclick="adminPumpAll(20)">🚀 Памп (+20%)</button>
-        <button class="btn btn-danger" onclick="adminDumpAll(20)">📉 Дамп (-20%)</button>
+    <!-- АДМИН-ПАНЕЛЬ -->
+    <div id="admin-panel" class="admin-container" style="display: none;">
+        <h3>⚙️ Управление Биржей</h3>
+
+        <div class="admin-tabs">
+            <button class="tab-btn active" onclick="switchAdminTab('economy')">💰 Деньги</button>
+            <button class="tab-btn" onclick="switchAdminTab('players')">👥 Игроки и Баны</button>
+            <button class="tab-btn" onclick="switchAdminTab('market')">📈 Цены Рынка</button>
+        </div>
+
+        <div id="tab-economy" class="admin-tab-content active">
+            <div class="admin-group">
+                <input type="number" id="admin-money-amount" value="5000" placeholder="Сумма (R)">
+                <div class="admin-btn-group">
+                    <button class="btn btn-success" onclick="adminAddMoney()">💵 + Добавить</button>
+                    <button class="btn btn-primary" onclick="adminSetMoney()">✏️ Установить</button>
+                    <button class="btn btn-danger" onclick="adminResetMoney()">🔄 Сбросить в 0</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="tab-players" class="admin-tab-content">
+            <div class="admin-group">
+                <label>Выдать скин себе в инвентарь:</label>
+                <div class="admin-inline">
+                    <select id="admin-give-skin-select"></select>
+                    <button class="btn btn-success" onclick="adminGiveSkin()">🎁 Выдать скин</button>
+                </div>
+            </div>
+            <hr class="admin-divider">
+            <div class="admin-group">
+                <label>Управление банами:</label>
+                <div class="admin-inline">
+                    <input type="text" id="admin-target-id" placeholder="ID игрока (#123456)">
+                    <button class="btn btn-danger" onclick="adminBanPlayer()">🚫 Забанить</button>
+                    <button class="btn btn-secondary" onclick="adminUnbanPlayer()">Разбанить</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="tab-market" class="admin-tab-content">
+            <div id="admin-status" style="padding:8px 12px; border-radius:6px; background:#1a1d27; margin-bottom:12px; text-align:center; font-weight:bold;">
+                ❌ Админ: Не авторизован
+            </div>
+
+            <div class="admin-inline" style="margin-bottom:12px;">
+                <button class="btn btn-primary" onclick="adminLogin()" style="flex:1;">🔑 Войти как админ</button>
+                <button class="btn btn-danger" onclick="adminLogout()" style="flex:1;">🚪 Выйти</button>
+            </div>
+
+            <hr class="admin-divider">
+
+            <div class="admin-group">
+                <label>Изменение цены предмета:</label>
+                <div class="admin-inline">
+                    <select id="admin-market-skin-select"></select>
+                    <input type="number" id="admin-market-price-input" placeholder="Новая цена (R)">
+                    <button class="btn btn-success" onclick="adminUpdateMarketPrice()">Применить</button>
+                </div>
+            </div>
+
+            <div class="admin-btn-group" style="margin-top: 10px;">
+                <button class="btn btn-primary" onclick="adminPumpAll(20)">🚀 Памп (+20%)</button>
+                <button class="btn btn-danger" onclick="adminDumpAll(20)">📉 Дамп (-20%)</button>
+            </div>
+
+            <div class="admin-btn-group" style="margin-top: 10px;">
+                <button class="btn btn-success" onclick="adminPumpAllWithSync(20)" style="background:#22c55e; flex:1;">
+                    📈 +20% (Синхр.)
+                </button>
+                <button class="btn btn-danger" onclick="adminDumpAllWithSync(20)" style="flex:1;">
+                    📉 -20% (Синхр.)
+                </button>
+            </div>
+
+            <div style="margin-top:10px; font-size:11px; color:#64748b; text-align:center;">
+                ⚡ Кнопки с "Синхр." сохраняют цены на сервер для всех пользователей
+            </div>
+        </div>
     </div>
 
-
-    </div>
-
-    <div style="margin-top:10px; font-size:11px; color:#64748b; text-align:center;">
-        ⚡ Кнопки с "Синхр." сохраняют цены на сервер для всех пользователей
-    </div>
-</div>
-<!-- ВСПЛЫВАЮЩЕЕ УВЕДОМЛЕНИЕ СПРАВА СБОКУ -->
-<div id="admin-toast" class="admin-toast"></div>
-
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-
-
-<!-- ВКЛАДКА: КАЗИК -->
-<section id="tab-casino" class="tab-content">
-    <h2 class="section-title">🎰 КАЗИК (Удвой или потеряй)</h2>
-    <p style="color:#8a99ad; margin-bottom:15px;">Поставьте свой скин на кон! При победе вы получите его в двойном размере, при проигрыше — потеряете.</p>
-    <div id="casino-inventory" class="inventory-grid"></div>
-    <div id="casino-result" style="display:none; margin-top:20px; padding:15px; background:#1a1d27; border-radius:8px; text-align:center; border:2px solid #4b69ff;">
-        <h3 id="casino-result-text"></h3>
-        <button class="btn" onclick="document.getElementById('casino-result').style.display='none';">Закрыть</button>
-    </div>
-</section>
-
+    <div id="admin-toast" class="admin-toast"></div>
 
     <script src="script.js"></script>
 </body>
