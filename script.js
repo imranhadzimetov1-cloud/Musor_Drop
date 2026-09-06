@@ -264,15 +264,14 @@ document.getElementById('add-balance-btn')?.addEventListener('click', () => {
 });
 
 // ==========================================
-// 7. КЕЙСЫ И МАГАЗИН
+// 7. РЕНДЕР КЕЙСОВ И МАГАЗИНА
 // ==========================================
 function renderCases() {
     const container = document.getElementById('cases-grid');
-    if (!container) return;
     container.innerHTML = CASES_DATABASE.map(c => `
         <div class="case-card">
             <div class="case-image-box">
-                <img src="${c.items[0]?.img || ''}" alt="${c.name}" style="max-height:100px; object-fit:contain;">
+                <img src="${c.items[0]?.img || STEAM_CDN}" alt="${c.name}" style="max-height:100px; object-fit:contain;">
             </div>
             <h3>${c.name}</h3>
             <div class="case-price">${c.price} R</div>
@@ -284,19 +283,11 @@ function renderCases() {
 
 function renderShop() {
     const container = document.getElementById('shop-grid');
-    if (!container) return;
+    document.getElementById('shop-total-count').innerText = SKINS_DATABASE.length;
 
-    const countElem = document.getElementById('shop-total-count');
-    if (countElem) countElem.innerText = SKINS_DATABASE.length;
-
-    const searchInput = document.getElementById('shop-search');
-    const search = searchInput ? searchInput.value.toLowerCase() : '';
-
-    const activeFilterBtn = document.querySelector('.filter-btn.active');
-    const activeFilter = activeFilterBtn ? activeFilterBtn.dataset.rarity : 'ALL';
-
-    const sortInput = document.getElementById('shop-sort');
-    const sort = sortInput ? sortInput.value : 'default';
+    const search = document.getElementById('shop-search').value.toLowerCase();
+    const activeFilter = document.querySelector('.filter-btn.active').dataset.rarity;
+    const sort = document.getElementById('shop-sort').value;
 
     let filtered = SKINS_DATABASE.filter(s => {
         const matchesSearch = s.name.toLowerCase().includes(search) || s.weapon.toLowerCase().includes(search);
@@ -308,36 +299,26 @@ function renderShop() {
     if (sort === 'price-desc') filtered.sort((a,b) => b.price - a.price);
     if (sort === 'name') filtered.sort((a,b) => a.name.localeCompare(b.name));
 
-    container.innerHTML = filtered.map(s => {
-        let trendHTML = '';
-        if (s.oldPrice && s.oldPrice !== s.price) {
-            const diffPercent = Math.round(((s.price - s.oldPrice) / s.oldPrice) * 100);
-            if (diffPercent > 0) {
-                trendHTML = `<span style="color: #22c55e; font-weight: bold; font-size: 11px;">▲ +${diffPercent}%</span>`;
-            } else if (diffPercent < 0) {
-                trendHTML = `<span style="color: #ef4444; font-weight: bold; font-size: 11px;">▼ ${diffPercent}%</span>`;
-            }
-        }
-
-        return `
-            <div class="skin-card rarity-${s.rarity}">
-                <div class="skin-weapon">${s.weapon}</div>
-                <div class="skin-title">${s.name.includes('|') ? s.name.split('|')[1] : s.name}</div>
-                <div class="skin-img-box">
-                    <img src="${s.img}" alt="${s.name}" style="max-width:100%; max-height:80px; object-fit:contain;">
-                </div>
-                <div class="skin-price" style="display:flex; justify-content:center; align-items:center; gap:6px;">
-                    <span>${s.price} R</span>
-                    ${trendHTML}
-                </div>
-                <button type="button" class="btn" style="margin-top:8px; padding:6px; font-size:11px; width:100%; background:#4b69ff; cursor:pointer;" onclick="window.buySkin(${s.id})">КУПИТЬ</button>
-            </div>
-        `;
-    }).join('');
+    container.innerHTML = filtered.map(s => renderSkinCardHTML(s)).join('');
 }
 
-document.getElementById('shop-search')?.addEventListener('input', renderShop);
-document.getElementById('shop-sort')?.addEventListener('change', renderShop);
+function renderSkinCardHTML(skin, count = 0, showSellBtn = false) {
+    return `
+        <div class="skin-card rarity-${skin.rarity}">
+            ${count > 1 ? `<div class="skin-count">x${count}</div>` : ''}
+            <div class="skin-weapon">${skin.weapon}</div>
+            <div class="skin-title">${skin.name.split('|')[1] || skin.name}</div>
+            <div class="skin-img-box">
+                <img src="${skin.img}" alt="${skin.name}" style="max-width:100%; max-height:80px; object-fit:contain;">
+            </div>
+            <div class="skin-price">${skin.price} R</div>
+            ${showSellBtn ? `<button class="btn btn-danger" style="margin-top:8px; padding:6px; font-size:11px;" onclick="sellSkin(${skin.id})">ПРОДАТЬ</button>` : ''}
+        </div>
+    `;
+}
+
+document.getElementById('shop-search').addEventListener('input', renderShop);
+document.getElementById('shop-sort').addEventListener('change', renderShop);
 document.querySelectorAll('.filter-btn').forEach(btn => {
     btn.addEventListener('click', () => {
         document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
@@ -345,7 +326,6 @@ document.querySelectorAll('.filter-btn').forEach(btn => {
         renderShop();
     });
 });
-
 // ==========================================
 // 8. ИНВЕНТАРЬ
 // ==========================================
