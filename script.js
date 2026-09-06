@@ -147,7 +147,7 @@ function generateUserId() {
 
 const DEFAULT_STATE = {
     userId: generateUserId(),
-    userName: "NerK0ze_YT",
+    userName: "Player #???",
     balance: 115,
     inventory: [],
     casesOpened: 0,
