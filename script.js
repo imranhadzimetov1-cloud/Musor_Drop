@@ -72,7 +72,7 @@ function generateSkinTexture(weapon, skinName, rarity) {
 }
 
 // ==========================================
-// БАЗА СКИНОВ
+// БАЗА СКИНОВ (ТОЛЬКО ОДИН РАЗ!)
 // ==========================================
 const SKINS_DATABASE = [
     { id: 1, weapon: "P250", name: "P250 | Sand Dune", rarity: "COMMON", price: 2 },
@@ -108,6 +108,7 @@ const SKINS_DATABASE = [
     { id: 94, weapon: "★ M9 Bayonet", name: "★ M9 Bayonet | Crimson Web", rarity: "SECRET", price: 6100 },
     { id: 95, weapon: "AK-47", name: "AK-47 | Case Hardened", rarity: "SECRET", price: 2100 },
     { id: 96, weapon: "★ Sport Gloves", name: "★ Sport Gloves | Vice", rarity: "SECRET", price: 7800 },
+    // 👇 XABIB (ДОБАВЛЕН)
     { id: 97, weapon: "★ Xabib", name: "★ Xabib | TikTok", rarity: "SECRET", price: 50000 }
 ];
 
@@ -123,6 +124,11 @@ SKINS_DATABASE.forEach(skin => {
 });
 
 console.log('✅ База скинов загружена! Всего скинов:', SKINS_DATABASE.length);
+
+// ==========================================
+// ДАЛЬШЕ ВЕСЬ ОСТАЛЬНОЙ КОД...
+// ==========================================
+// (ТВОЙ СТАРЫЙ КОД)
 
 function getRarityColor(rarity) {
     switch(rarity) {
