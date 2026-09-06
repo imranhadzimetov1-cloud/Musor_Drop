@@ -1245,6 +1245,197 @@ document.addEventListener('DOMContentLoaded', function() {
     // если активна вкладка casino (по умолчанию нет), но можно вызвать при переключении.
 });
 
+// ==========================================
+// РУЛЕТКА С МНОЖИТЕЛЯМИ
+// ==========================================
+
+let selectedSkinForCasino = null;
+let isWheelSpinning = false;
+
+// Сектора рулетки
+const WHEEL_SECTORS = [
+    { label: 'x0', multiplier: 0, color: '#ef4444' },
+    { label: 'x1', multiplier: 1, color: '#6b7280' },
+    { label: 'x0', multiplier: 0, color: '#ef4444' },
+    { label: 'x2', multiplier: 2, color: '#22c55e' },
+    { label: 'x0', multiplier: 0, color: '#ef4444' },
+    { label: 'x1', multiplier: 1, color: '#6b7280' },
+    { label: 'x0', multiplier: 0, color: '#ef4444' },
+    { label: 'x3', multiplier: 3, color: '#4b69ff' },
+    { label: 'x0', multiplier: 0, color: '#ef4444' },
+    { label: 'x5', multiplier: 5, color: '#d32ce6' },
+];
+
+// Отрисовка рулетки
+function drawWheel(highlightIndex = -1) {
+    const canvas = document.getElementById('wheelCanvas');
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    const centerX = canvas.width / 2;
+    const centerY = canvas.height / 2;
+    const radius = Math.min(centerX, centerY) - 10;
+    const sliceAngle = (2 * Math.PI) / WHEEL_SECTORS.length;
+
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    WHEEL_SECTORS.forEach((sector, i) => {
+        const startAngle = i * sliceAngle - Math.PI / 2;
+        const endAngle = startAngle + sliceAngle;
+
+        ctx.beginPath();
+        ctx.moveTo(centerX, centerY);
+        ctx.arc(centerX, centerY, radius, startAngle, endAngle);
+        ctx.closePath();
+
+        ctx.fillStyle = sector.color;
+        ctx.fill();
+
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+
+        // Текст
+        const textAngle = startAngle + sliceAngle / 2;
+        const textX = centerX + Math.cos(textAngle) * (radius * 0.7);
+        const textY = centerY + Math.sin(textAngle) * (radius * 0.7);
+
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 20px Arial';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(sector.label, textX, textY);
+    });
+
+    // Центральный круг
+    ctx.beginPath();
+    ctx.arc(centerX, centerY, 30, 0, 2 * Math.PI);
+    ctx.fillStyle = '#1a1d27';
+    ctx.fill();
+    ctx.strokeStyle = '#f59e0b';
+    ctx.lineWidth = 3;
+    ctx.stroke();
+
+    ctx.fillStyle = '#f59e0b';
+    ctx.font = 'bold 16px Arial';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('🎰', centerX, centerY);
+
+    // Подсветка выигрышного сектора
+    if (highlightIndex >= 0 && highlightIndex < WHEEL_SECTORS.length) {
+        const startAngle = highlightIndex * sliceAngle - Math.PI / 2;
+        const endAngle = startAngle + sliceAngle;
+
+        ctx.beginPath();
+        ctx.moveTo(centerX, centerY);
+        ctx.arc(centerX, centerY, radius + 5, startAngle, endAngle);
+        ctx.closePath();
+        ctx.shadowColor = '#f59e0b';
+        ctx.shadowBlur = 30;
+        ctx.fillStyle = 'rgba(245, 158, 11, 0.3)';
+        ctx.fill();
+        ctx.shadowBlur = 0;
+    }
+}
+
+// Рендер скинов для рулетки
+function renderCasinoInventory() {
+    const container = document.getElementById('casino-inventory');
+    if (!container) return;
+    
+    const balanceEl = document.getElementById('casino-balance');
+    if (balanceEl) balanceEl.innerText = state.balance + ' R';
+    
+    const countEl = document.getElementById('casino-skin-count');
+    if (countEl) {
+        const total = state.inventory.reduce((sum, i) => sum + (i.count || 1), 0);
+        countEl.innerText = total;
+    }
+    
+    if (!state.inventory || state.inventory.length === 0) {
+        container.innerHTML = `
+            <div style="grid-column:1/-1; text-align:center; padding:40px; background:#1a1d27; border-radius:16px; border:2px dashed #2a2d3a;">
+                <div style="font-size:48px; margin-bottom:10px;">🎒</div>
+                <div style="color:#94a3b8; font-size:16px;">У вас нет скинов для ставок!</div>
+            </div>
+        `;
+        return;
+    }
+
+    container.innerHTML = state.inventory.map(item => {
+        const skin = SKINS_DATABASE.find(s => s.id === item.id);
+        const img = skin ? skin.img : item.img;
+        const price = skin ? skin.price : item.price;
+        const shortName = item.name.includes('|') ? item.name.split('|')[1].trim() : item.name;
+        const rarityColor = getRarityColor(item.rarity);
+        const isSelected = selectedSkinForCasino && selectedSkinForCasino.id === item.id;
+        
+        return `
+            <div class="casino-card rarity-${item.rarity} ${isSelected ? 'selected' : ''}" onclick="selectSkinForCasino(${item.id})">
+                <div class="card-rarity" style="background:${rarityColor};"></div>
+                ${item.count > 1 ? `<div class="skin-count-badge">x${item.count}</div>` : ''}
+                <div class="skin-weapon">${item.weapon}</div>
+                <div class="skin-title">${shortName}</div>
+                <div class="skin-img-box">
+                    <img src="${img}" alt="${item.name}" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22100%22 height=%22100%22%3E%3Crect width=%22100%22 height=%22100%22 fill=%22%231a1d27%22/%3E%3Ctext x=%2250%22 y=%2250%22 text-anchor=%22middle%22 dy=%22.3em%22 fill=%22%236b7280%22 font-size=%2212%22%3E${item.weapon}%3C/text%3E%3C/svg%3E';">
+                </div>
+                <div class="skin-price">${price} R</div>
+                <button class="select-btn" onclick="event.stopPropagation(); selectSkinForCasino(${item.id});">
+                    ${isSelected ? '✅ Выбран' : '🎯 Выбрать'}
+                </button>
+            </div>
+        `;
+    }).join('');
+}
+
+// Выбор скина для ставки
+window.selectSkinForCasino = function(skinId) {
+    const item = state.inventory.find(i => i.id === skinId);
+    if (!item || item.count < 1) {
+        showToast('❌ Этот скин недоступен!');
+        return;
+    }
+    selectedSkinForCasino = item;
+    renderCasinoInventory();
+    showToast(`✅ Выбран скин: ${item.name}`);
+};
+
+// Вращение рулетки
+window.spinWheel = function() {
+    if (isWheelSpinning) {
+        showToast('⏳ Рулетка уже крутится!');
+        return;
+    }
+
+    if (!selectedSkinForCasino) {
+        showToast('⚠️ Сначала выберите скин для ставки!');
+        return;
+    }
+
+    if (selectedSkinForCasino.count < 1) {
+        showToast('❌ У вас нет этого скина!');
+        selectedSkinForCasino = null;
+        renderCasinoInventory();
+        return;
+    }
+
+    isWheelSpinning = true;
+    const btn = document.getElementById('spin-wheel-btn');
+    if (btn) btn.disabled = true;
+
+    // Случайный выбор сектора
+    const resultIndex = Math.floor(Math.random() * WHEEL_SECTORS.length);
+    const resultSector = WHEEL_SECTORS[resultIndex];
+    
+    // Случайное количество оборотов (5-8)
+    const spins = 5 + Math.random() * 3;
+    const angle = spins * 360 + (resultIndex / WHEEL_SECTORS.length) * 360;
+    
+    // Анимация вращения
+    const canvas = document.getElementById('wheelCanvas');
+    const currentRotation = canvas.dataset.rotation || 0;
+    const newRotation = currentRotation + angle
+
 
 
 
