@@ -1,5 +1,5 @@
 // ==========================================
-// 1. КОНФИГУРАЦИЯ И ВЕРОЯТНОСТИ (ШАНСЫ)
+// 1. КОНФИГУРАЦИЯ
 // ==========================================
 const DROP_CHANCES = {
     COMMON: 60.0,
@@ -10,7 +10,7 @@ const DROP_CHANCES = {
 };
 
 // ==========================================
-// ГЕНЕРАТОР SVG-ТЕКСТУР СКИНОВ
+// ГЕНЕРАТОР ТЕКСТУР
 // ==========================================
 function generateSkinTexture(weapon, skinName, rarity) {
     const rarityColors = {
@@ -72,7 +72,7 @@ function generateSkinTexture(weapon, skinName, rarity) {
 }
 
 // ==========================================
-// ПОЛНАЯ БАЗА СКИНОВ CS2
+// 2. БАЗА СКИНОВ
 // ==========================================
 const SKINS_DATABASE = [
     { id: 1, weapon: "P250", name: "P250 | Sand Dune", rarity: "COMMON", price: 2 },
@@ -127,7 +127,7 @@ function getRarityColor(rarity) {
 }
 
 // ==========================================
-// 3. БАЗА ДАННЫХ КЕЙСОВ
+// 3. БАЗА КЕЙСОВ
 // ==========================================
 const CASES_DATABASE = [
     { id: "starter", name: "Starter Case", price: 15, items: SKINS_DATABASE.filter(s => ["COMMON", "RARE"].includes(s.rarity)) },
@@ -159,7 +159,6 @@ const DEFAULT_STATE = {
 let state = { ...DEFAULT_STATE };
 
 function loadState() {
-    console.log('🔄 Загрузка состояния...');
     try {
         const savedData = localStorage.getItem('dropzone_state');
         if (savedData) {
@@ -171,14 +170,12 @@ function loadState() {
             if (!Array.isArray(state.bannedIds)) state.bannedIds = [];
             if (!state.userId) state.userId = generateUserId();
             if (!state.playerId) state.playerId = '#' + Math.floor(100000 + Math.random() * 900000);
-            console.log('✅ Загружено! Баланс:', state.balance);
         } else {
-            console.log('📭 Новый игрок');
             state = { ...DEFAULT_STATE };
             saveState();
         }
     } catch (e) {
-        console.error("❌ Ошибка:", e);
+        console.error("Ошибка загрузки:", e);
         state = { ...DEFAULT_STATE };
     }
     updateUI();
@@ -193,15 +190,14 @@ function loadState() {
 function saveState() {
     try {
         localStorage.setItem('dropzone_state', JSON.stringify(state));
-        console.log('💾 Сохранено! Баланс:', state.balance);
     } catch (e) {
-        console.error("❌ Ошибка сохранения:", e);
+        console.error("Ошибка сохранения:", e);
     }
     updateUI();
 }
 
 // ==========================================
-// 5. AUDIO API
+// 5. AUDIO
 // ==========================================
 const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 
@@ -229,7 +225,7 @@ function playSound(type) {
 }
 
 // ==========================================
-// 6. ИНТЕРФЕЙС И ВКЛАДКИ
+// 6. ИНТЕРФЕЙС
 // ==========================================
 document.querySelectorAll('.nav-btn').forEach(btn => {
     btn.addEventListener('click', () => {
@@ -237,7 +233,6 @@ document.querySelectorAll('.nav-btn').forEach(btn => {
         document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
         btn.classList.add('active');
         document.getElementById(`tab-${btn.dataset.tab}`).classList.add('active');
-        
         if (btn.dataset.tab === 'casino') {
             renderCasinoInventory();
             drawWheel();
@@ -302,7 +297,7 @@ document.getElementById('add-balance-btn')?.addEventListener('click', () => {
 });
 
 // ==========================================
-// 7. РЕНДЕР КЕЙСОВ И МАГАЗИНА
+// 7. КЕЙСЫ И МАГАЗИН
 // ==========================================
 function renderCases() {
     const container = document.getElementById('cases-grid');
@@ -385,7 +380,7 @@ document.querySelectorAll('.filter-btn').forEach(btn => {
 });
 
 // ==========================================
-// 8. ИНВЕНТАРЬ И ПРОДАЖА
+// 8. ИНВЕНТАРЬ
 // ==========================================
 function renderInventory() {
     const container = document.getElementById('inventory-grid');
@@ -420,7 +415,7 @@ window.sellSkin = function(skinId) {
 
     const itemIndex = state.inventory.findIndex(i => Number(i.id) === Number(skinId));
     if (itemIndex === -1) {
-        showToast("Скин не найден в инвентаре!");
+        showToast("Скин не найден!");
         return;
     }
 
@@ -437,22 +432,22 @@ window.sellSkin = function(skinId) {
     }
 
     saveState();
-    showToast(`Продано: ${inventoryItem.name} за ${currentMarketPrice} R!`);
+    showToast(`Продано за ${currentMarketPrice} R`);
 };
 
 document.getElementById('sell-all-btn')?.addEventListener('click', () => {
     if (state.inventory.length === 0) return;
     const totalSum = state.inventory.reduce((acc, item) => acc + (item.price * item.count), 0);
-    if (confirm(`Продать ВСЕ предметы из инвентаря за ${totalSum} R?`)) {
+    if (confirm(`Продать всё за ${totalSum} R?`)) {
         state.balance += totalSum;
         state.inventory = [];
         saveState();
-        showToast(`Все предметы проданы за ${totalSum} R`);
+        showToast(`Все проданы за ${totalSum} R`);
     }
 });
 
 // ==========================================
-// 9. ЛОГИКА РУЛЕТКИ (КЕЙСЫ)
+// 9. ОТКРЫТИЕ КЕЙСОВ
 // ==========================================
 let currentSpinCase = null;
 let isSpinning = false;
@@ -482,7 +477,7 @@ window.openCaseModal = function(caseId) {
     if (!c) return;
 
     if (state.balance < c.price) {
-        showToast("Недостаточно средств на балансе!");
+        showToast("Недостаточно средств!");
         return;
     }
 
@@ -612,7 +607,7 @@ function renderSkinCardHTML(skin, count = 0, showSellBtn = false) {
 }
 
 // ==========================================
-// 10. ИСТОРИЯ ВЫПАДЕНИЙ И ПРОФИЛЬ
+// 10. ИСТОРИЯ И ПРОФИЛЬ
 // ==========================================
 function addDropToHistory(skin) {
     state.history.unshift({ ...skin, time: new Date().toLocaleTimeString() });
@@ -655,7 +650,7 @@ document.getElementById('edit-name-btn')?.addEventListener('click', () => {
 });
 
 // ==========================================
-// 11. ПОКУПКА СКИНОВ
+// 11. ПОКУПКА
 // ==========================================
 window.buySkin = function(skinId) {
     const skin = SKINS_DATABASE.find(s => Number(s.id) === Number(skinId));
@@ -675,7 +670,7 @@ window.buySkin = function(skinId) {
 };
 
 // ==========================================
-// 12. СИСТЕМА ДРУЗЕЙ И ID
+// 12. ДРУЗЬЯ
 // ==========================================
 function initPlayerId() {
     if (!state.playerId) {
@@ -688,18 +683,637 @@ function initPlayerId() {
 
 window.copyMyId = function() {
     navigator.clipboard.writeText(state.playerId);
-    showToast("Ваш ID скопирован!");
+    showToast("ID скопирован!");
+};
+
+window.sendFriendRequest = function() {
+    const input = document.getElementById('friend-id-input');
+    if (!input) return;
+    const targetId = input.value.trim();
+
+    if (!targetId) { showToast("Введите ID!"); return; }
+    if (targetId === state.playerId) { showToast("Нельзя себя!"); return; }
+    if (!state.friends) state.friends = [];
+    if (state.friends.some(f => f.id === targetId)) { showToast("Уже в друзьях!"); return; }
+
+    const newFriend = {
+        id: targetId,
+        name: `Игрок ${targetId}`,
+        avatar: `https://api.dicebear.com/7.x/bottts/svg?seed=${targetId}`,
+        status: Math.random() > 0.3 ? 'online' : 'offline',
+        level: Math.floor(Math.random() * 50) + 1
+    };
+
+    state.friends.push(newFriend);
+    saveState();
+    renderFriends();
+    input.value = '';
+    showToast(`Игрок ${targetId} добавлен!`);
+};
+
+window.removeFriend = function(friendId) {
+    if (!state.friends) return;
+    state.friends = state.friends.filter(f => f.id !== friendId);
+    saveState();
+    renderFriends();
+    showToast("Удален из друзей");
+};
+
+function renderFriends() {
+    const container = document.getElementById('friends-list');
+    const countElem = document.getElementById('friends-count');
+    if (!container) return;
+
+    if (!state.friends) state.friends = [];
+    if (countElem) countElem.innerText = state.friends.length;
+
+    if (state.friends.length === 0) {
+        container.innerHTML = `<div style="color: #64748b; font-size: 13px; text-align: center; padding: 10px;">Нет друзей</div>`;
+        return;
+    }
+
+    container.innerHTML = state.friends.map(friend => `
+        <div style="display: flex; align-items: center; justify-content: space-between; background: #1e293b; padding: 10px; border-radius: 8px; border: 1px solid #334155;">
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <div style="position: relative; width: 36px; height: 36px;">
+                    <img src="${friend.avatar}" style="width: 100%; height: 100%; border-radius: 50%; background: #0f172a;">
+                    <span style="position: absolute; bottom: 0; right: 0; width: 10px; height: 10px; border-radius: 50%; background: ${friend.status === 'online' ? '#22c55e' : '#64748b'}; border: 2px solid #1e293b;"></span>
+                </div>
+                <div>
+                    <div style="font-size: 13px; font-weight: bold; color: white;">${friend.name}</div>
+                    <div style="font-size: 11px; color: #94a3b8;">ID: ${friend.id}</div>
+                </div>
+            </div>
+            <button onclick="removeFriend('${friend.id}')" style="background: rgba(239, 68, 68, 0.15); color: #ef4444; border: 1px solid #ef4444; border-radius: 6px; padding: 4px 8px; font-size: 11px; cursor: pointer;">Удалить</button>
+        </div>
+    `).join('');
+}
+
+// ==========================================
+// 13. АДМИН-ПАНЕЛЬ
+// ==========================================
+const ADMIN_PASSWORD = "TikTok";
+
+function showAdminNotice(text) {
+    const toast = document.getElementById('admin-toast');
+    if (!toast) return;
+    toast.textContent = text;
+    toast.classList.add('show');
+    clearTimeout(window.adminToastTimeout);
+    window.adminToastTimeout = setTimeout(() => toast.classList.remove('show'), 3000);
+}
+
+function populateAdminDropdowns() {
+    const giveSelect = document.getElementById('admin-give-skin-select');
+    const marketSelect = document.getElementById('admin-market-skin-select');
+
+    if (SKINS_DATABASE && SKINS_DATABASE.length > 0) {
+        const options = SKINS_DATABASE.map(s => `<option value="${s.id}">${s.name} (${s.price} R)</option>`).join('');
+        if (giveSelect) giveSelect.innerHTML = options;
+        if (marketSelect) marketSelect.innerHTML = options;
+    }
+}
+
+window.loginAdmin = function() {
+    const input = document.getElementById('admin-login-pass');
+    if (!input) return;
+
+    if (input.value === ADMIN_PASSWORD) {
+        const panel = document.getElementById('admin-panel');
+        if (panel) panel.style.display = 'block';
+        sessionStorage.setItem('isAdminLoggedIn', 'true');
+        populateAdminDropdowns();
+        showAdminNotice("Доступ открыт!");
+    } else {
+        showAdminNotice("Неверный пароль!");
+    }
+};
+
+window.switchAdminTab = function(tabName) {
+    const tabs = document.querySelectorAll('.tab-btn');
+    const contents = document.querySelectorAll('.admin-tab-content');
+
+    tabs.forEach(btn => btn.classList.remove('active'));
+    contents.forEach(content => content.classList.remove('active'));
+
+    if (window.event && window.event.target) {
+        window.event.target.classList.add('active');
+    }
+
+    const activeContent = document.getElementById(`tab-${tabName}`);
+    if (activeContent) {
+        activeContent.classList.add('active');
+    }
+};
+
+window.adminAddMoney = function() {
+    const amount = Number(document.getElementById('admin-money-amount')?.value) || 0;
+    state.balance = (state.balance || 0) + amount;
+    saveState();
+    showAdminNotice(`+${amount} R`);
+};
+
+window.adminSetMoney = function() {
+    const amount = Number(document.getElementById('admin-money-amount')?.value) || 0;
+    state.balance = amount;
+    saveState();
+    showAdminNotice(`Баланс: ${amount} R`);
+};
+
+window.adminResetMoney = function() {
+    state.balance = 0;
+    saveState();
+    showAdminNotice("Баланс сброшен");
+};
+
+window.adminGiveSkin = function() {
+    const skinId = Number(document.getElementById('admin-give-skin-select')?.value);
+    if (!skinId) return;
+    const skin = SKINS_DATABASE.find(s => s.id === skinId);
+    if (!skin) return;
+    addItemToInventory(skin);
+    showAdminNotice(`Выдан: ${skin.name}`);
+};
+
+window.adminBanPlayer = function() {
+    const targetId = document.getElementById('admin-target-id')?.value.trim();
+    if (!targetId) return showAdminNotice("Введите ID!");
+    if (!state.bannedIds) state.bannedIds = [];
+    if (!state.bannedIds.includes(targetId)) state.bannedIds.push(targetId);
+    saveState();
+    showAdminNotice(`Игрок ${targetId} забанен!`);
+};
+
+window.adminUnbanPlayer = function() {
+    const targetId = document.getElementById('admin-target-id')?.value.trim();
+    if (state.bannedIds) {
+        state.bannedIds = state.bannedIds.filter(id => id !== targetId);
+        saveState();
+    }
+    showAdminNotice(`Игрок ${targetId} разбанен`);
+};
+
+window.adminUpdateMarketPrice = function() {
+    const id = Number(document.getElementById('admin-market-skin-select')?.value);
+    const price = Number(document.getElementById('admin-market-price-input')?.value);
+    const skin = SKINS_DATABASE.find(s => s.id === id);
+    if (skin && price > 0) {
+        skin.oldPrice = skin.price;
+        skin.price = price;
+        renderShop();
+        populateAdminDropdowns();
+        showAdminNotice(`Цена: ${price} R`);
+    }
+};
+
+window.adminPumpAll = function(percent) {
+    SKINS_DATABASE.forEach(s => {
+        s.oldPrice = s.price;
+        s.price = Math.round(s.price * (1 + percent / 100));
+    });
+    saveState();
+    renderShop();
+    showAdminNotice(`+${percent}%`);
+};
+
+window.adminDumpAll = function(percent) {
+    SKINS_DATABASE.forEach(s => {
+        s.oldPrice = s.price;
+        s.price = Math.max(1, Math.round(s.price * (1 - percent / 100)));
+    });
+    saveState();
+    renderShop();
+    showAdminNotice(`-${percent}%`);
+};
+
+window.logoutAdmin = function() {
+    sessionStorage.removeItem('isAdminLoggedIn');
+    const panel = document.getElementById('admin-panel');
+    if (panel) panel.style.display = 'none';
+    showAdminNotice("Выход из админки");
 };
 
 // ==========================================
-// 13. РУЛЕТКА (НОВОЕ КАЗИНО)
+// 14. РУЛЕТКА (КАЗИНО)
 // ==========================================
 
 let selectedSkinForCasino = null;
 let isWheelSpinning = false;
 let wheelRotation = 0;
 
-// Сектора рулетки
 const WHEEL_SECTORS = [
-    { label: '0', multiplier: 0, color: '#ef4444' },
-   
+    { label: '0x', multiplier: 0, color: '#ef4444' },
+    { label: '1x', multiplier: 1, color: '#6b7280' },
+    { label: '0x', multiplier: 0, color: '#ef4444' },
+    { label: '2x', multiplier: 2, color: '#22c55e' },
+    { label: '0x', multiplier: 0, color: '#ef4444' },
+    { label: '1x', multiplier: 1, color: '#6b7280' },
+    { label: '0x', multiplier: 0, color: '#ef4444' },
+    { label: '3x', multiplier: 3, color: '#4b69ff' },
+    { label: '0x', multiplier: 0, color: '#ef4444' },
+    { label: '5x', multiplier: 5, color: '#d32ce6' }
+];
+
+function drawWheel(highlightIndex = -1) {
+    const canvas = document.getElementById('wheelCanvas');
+    if (!canvas) return;
+    
+    const ctx = canvas.getContext('2d');
+    const centerX = canvas.width / 2;
+    const centerY = canvas.height / 2;
+    const radius = Math.min(centerX, centerY) - 10;
+    const sliceAngle = (2 * Math.PI) / WHEEL_SECTORS.length;
+
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    WHEEL_SECTORS.forEach((sector, i) => {
+        const startAngle = i * sliceAngle + wheelRotation - Math.PI / 2;
+        const endAngle = startAngle + sliceAngle;
+
+        ctx.beginPath();
+        ctx.moveTo(centerX, centerY);
+        ctx.arc(centerX, centerY, radius, startAngle, endAngle);
+        ctx.closePath();
+
+        ctx.fillStyle = sector.color;
+        ctx.fill();
+
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+
+        const textAngle = startAngle + sliceAngle / 2;
+        const textX = centerX + Math.cos(textAngle) * (radius * 0.7);
+        const textY = centerY + Math.sin(textAngle) * (radius * 0.7);
+
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 18px Arial';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(sector.label, textX, textY);
+    });
+
+    // Центр
+    ctx.beginPath();
+    ctx.arc(centerX, centerY, 25, 0, 2 * Math.PI);
+    ctx.fillStyle = '#1a1d27';
+    ctx.fill();
+    ctx.strokeStyle = '#f59e0b';
+    ctx.lineWidth = 3;
+    ctx.stroke();
+
+    ctx.fillStyle = '#f59e0b';
+    ctx.font = 'bold 14px Arial';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('🎰', centerX, centerY);
+
+    if (highlightIndex >= 0 && highlightIndex < WHEEL_SECTORS.length) {
+        const startAngle = highlightIndex * sliceAngle + wheelRotation - Math.PI / 2;
+        const endAngle = startAngle + sliceAngle;
+
+        ctx.beginPath();
+        ctx.moveTo(centerX, centerY);
+        ctx.arc(centerX, centerY, radius + 3, startAngle, endAngle);
+        ctx.closePath();
+        ctx.shadowColor = '#f59e0b';
+        ctx.shadowBlur = 30;
+        ctx.fillStyle = 'rgba(245, 158, 11, 0.3)';
+        ctx.fill();
+        ctx.shadowBlur = 0;
+    }
+}
+
+function renderCasinoInventory() {
+    const container = document.getElementById('casino-inventory');
+    if (!container) return;
+    
+    const balanceEl = document.getElementById('casino-balance');
+    if (balanceEl) balanceEl.innerText = state.balance + ' R';
+    
+    const countEl = document.getElementById('casino-skin-count');
+    if (countEl) {
+        const total = state.inventory.reduce((sum, i) => sum + (i.count || 1), 0);
+        countEl.innerText = total;
+    }
+    
+    if (!state.inventory || state.inventory.length === 0) {
+        container.innerHTML = `
+            <div style="grid-column:1/-1; text-align:center; padding:40px; background:#1a1d27; border-radius:16px; border:2px dashed #2a2d3a;">
+                <div style="font-size:48px;">🎒</div>
+                <div style="color:#94a3b8;">Нет скинов для ставок</div>
+            </div>
+        `;
+        return;
+    }
+
+    container.innerHTML = state.inventory.map(item => {
+        const skin = SKINS_DATABASE.find(s => s.id === item.id);
+        const img = skin ? skin.img : item.img;
+        const price = skin ? skin.price : item.price;
+        const shortName = item.name.includes('|') ? item.name.split('|')[1].trim() : item.name;
+        const isSelected = selectedSkinForCasino && selectedSkinForCasino.id === item.id;
+        
+        return `
+            <div class="casino-card rarity-${item.rarity} ${isSelected ? 'selected' : ''}" onclick="selectSkinForCasino(${item.id})" style="background: linear-gradient(145deg, #1a1d27, #13151e); border-radius:14px; padding:14px 10px; text-align:center; border:2px solid ${isSelected ? '#f59e0b' : '#2a2d3a'}; position:relative; cursor:pointer; transition:all 0.3s;">
+                <div style="height:4px; border-radius:4px 4px 0 0; background:${getRarityColor(item.rarity)};"></div>
+                ${item.count > 1 ? `<div style="position:absolute; top:8px; right:8px; background:#f59e0b; color:#000; font-size:11px; font-weight:800; padding:2px 8px; border-radius:20px;">x${item.count}</div>` : ''}
+                <div style="font-size:11px; color:#8a99ad; margin-top:4px;">${item.weapon}</div>
+                <div style="font-size:13px; font-weight:700; margin:3px 0; color:#fff;">${shortName}</div>
+                <div style="height:65px; display:flex; align-items:center; justify-content:center; margin:6px 0;">
+                    <img src="${img}" style="max-height:60px; max-width:100%; object-fit:contain;" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22100%22 height=%22100%22%3E%3Crect width=%22100%22 height=%22100%22 fill=%22%231a1d27%22/%3E%3Ctext x=%2250%22 y=%2250%22 text-anchor=%22middle%22 dy=%22.3em%22 fill=%22%236b7280%22 font-size=%2212%22%3E${item.weapon}%3C/text%3E%3C/svg%3E';">
+                </div>
+                <div style="font-size:14px; font-weight:800; color:#f59e0b; margin:4px 0;">${price} R</div>
+                <button onclick="event.stopPropagation(); selectSkinForCasino(${item.id});" style="background:${isSelected ? 'linear-gradient(135deg, #f59e0b, #d97706)' : '#2a2d3a'}; color:${isSelected ? '#000' : '#94a3b8'}; border:none; padding:8px; border-radius:8px; font-size:12px; font-weight:700; cursor:pointer; width:100%;">
+                    ${isSelected ? '✅ Выбран' : '🎯 Выбрать'}
+                </button>
+            </div>
+        `;
+    }).join('');
+}
+
+window.selectSkinForCasino = function(skinId) {
+    const item = state.inventory.find(i => i.id === skinId);
+    if (!item || item.count < 1) {
+        showToast('❌ Скин недоступен!');
+        return;
+    }
+    selectedSkinForCasino = item;
+    renderCasinoInventory();
+    showToast(`✅ Выбран: ${item.name}`);
+};
+
+window.spinWheel = function() {
+    if (isWheelSpinning) {
+        showToast('⏳ Рулетка крутится!');
+        return;
+    }
+
+    if (!selectedSkinForCasino) {
+        showToast('⚠️ Выберите скин!');
+        return;
+    }
+
+    if (selectedSkinForCasino.count < 1) {
+        showToast('❌ Нет скина!');
+        selectedSkinForCasino = null;
+        renderCasinoInventory();
+        return;
+    }
+
+    isWheelSpinning = true;
+    const btn = document.getElementById('spin-wheel-btn');
+    if (btn) btn.disabled = true;
+
+    const resultIndex = Math.floor(Math.random() * WHEEL_SECTORS.length);
+    const resultSector = WHEEL_SECTORS[resultIndex];
+    
+    const spins = 8 + Math.random() * 4;
+    const angle = spins * 2 * Math.PI - (resultIndex / WHEEL_SECTORS.length) * 2 * Math.PI;
+    
+    const duration = 4000;
+    const startTime = Date.now();
+    const startRotation = wheelRotation;
+    const targetRotation = startRotation + angle;
+
+    function animateWheel() {
+        const elapsed = Date.now() - startTime;
+        const progress = Math.min(elapsed / duration, 1);
+        const easeOut = 1 - Math.pow(1 - progress, 3);
+        wheelRotation = startRotation + angle * easeOut;
+        drawWheel();
+        if (progress < 1) {
+            requestAnimationFrame(animateWheel);
+        } else {
+            wheelRotation = targetRotation;
+            drawWheel();
+            setTimeout(() => {
+                processCasinoResult(resultIndex);
+            }, 500);
+        }
+    }
+
+    animateWheel();
+};
+
+function processCasinoResult(resultIndex) {
+    const resultSector = WHEEL_SECTORS[resultIndex];
+    const multiplier = resultSector.multiplier;
+    const win = multiplier > 0;
+
+    const itemIndex = state.inventory.findIndex(i => i.id === selectedSkinForCasino.id);
+    if (itemIndex === -1) {
+        showToast('❌ Ошибка!');
+        isWheelSpinning = false;
+        if (document.getElementById('spin-wheel-btn')) {
+            document.getElementById('spin-wheel-btn').disabled = false;
+        }
+        return;
+    }
+
+    const item = state.inventory[itemIndex];
+    let resultText = '';
+    let detailText = '';
+    let icon = '';
+
+    if (win) {
+        const addCount = multiplier;
+        item.count += addCount;
+        resultText = `🎉 ПОБЕДА! x${multiplier}`;
+        detailText = `+${addCount} ${item.name}!<br>Теперь x${item.count}`;
+        icon = '🏆';
+        showToast(`✅ +${addCount} ${item.name}!`);
+    } else {
+        if (item.count > 1) {
+            item.count -= 1;
+            resultText = `😞 ПРОИГРЫШ! 0x`;
+            detailText = `Потерян ${item.name}.<br>Осталось x${item.count}`;
+        } else {
+            state.inventory.splice(itemIndex, 1);
+            resultText = `💀 ПРОИГРЫШ! 0x`;
+            detailText = `${item.name} полностью потерян!`;
+        }
+        icon = '💀';
+        showToast(`❌ Потерян ${item.name}`);
+    }
+
+    drawWheel(resultIndex);
+
+    const resultDiv = document.getElementById('casino-result');
+    const resultTextEl = document.getElementById('casino-result-text');
+    const resultDetailEl = document.getElementById('casino-result-detail');
+    const resultIconEl = document.getElementById('casino-result-icon');
+    
+    if (resultDiv && resultTextEl && resultDetailEl && resultIconEl) {
+        resultDiv.style.display = 'block';
+        resultDiv.style.borderColor = win ? '#22c55e' : '#ef4444';
+        resultDiv.style.boxShadow = win ? '0 0 40px rgba(34,197,94,0.3)' : '0 0 40px rgba(239,68,68,0.3)';
+        resultIconEl.textContent = icon;
+        resultTextEl.innerHTML = resultText;
+        resultTextEl.style.color = win ? '#22c55e' : '#ef4444';
+        resultDetailEl.innerHTML = detailText;
+    }
+
+    saveState();
+    renderInventory();
+    renderCasinoInventory();
+    updateUI();
+
+    isWheelSpinning = false;
+    selectedSkinForCasino = null;
+    if (document.getElementById('spin-wheel-btn')) {
+        document.getElementById('spin-wheel-btn').disabled = false;
+    }
+}
+
+// ==========================================
+// 15. ИНИЦИАЛИЗАЦИЯ
+// ==========================================
+document.addEventListener('DOMContentLoaded', () => {
+    loadState();
+    renderCases();
+    renderShop();
+    renderLiveDrops();
+    renderFriends();
+    initPlayerId();
+    populateAdminDropdowns();
+    renderCasinoInventory();
+    drawWheel();
+    
+    if (sessionStorage.getItem('isAdminLoggedIn') === 'true') {
+        const panel = document.getElementById('admin-panel');
+        if (panel) panel.style.display = 'block';
+    }
+});
+
+// ==========================================
+// 16. СИНХРОНИЗАЦИЯ ЦЕН (ДЛЯ АДМИНА)
+// ==========================================
+const GITHUB_CONFIG = {
+    owner: 'imranhadzimetov1-cloud',
+    repo: 'Musor_Drop',
+    path: 'market_prices.json'
+};
+
+function adminLogin() {
+    const token = prompt('🔑 Введите GitHub токен:');
+    if (!token) return;
+    if (token.startsWith('ghp_')) {
+        localStorage.setItem('github_admin_token', token);
+        alert('✅ Токен сохранен!');
+        showToast('✅ Вы вошли как администратор!');
+        updateAdminStatus();
+    } else {
+        alert('❌ Токен должен начинаться с "ghp_"');
+    }
+}
+
+function adminLogout() {
+    localStorage.removeItem('github_admin_token');
+    updateAdminStatus();
+    showToast('✅ Вы вышли из администратора');
+}
+
+function isAdminLoggedIn() {
+    return !!localStorage.getItem('github_admin_token');
+}
+
+function updateAdminStatus() {
+    const el = document.getElementById('admin-status');
+    if (el) {
+        if (isAdminLoggedIn()) {
+            el.innerHTML = '✅ Админ: Вход выполнен';
+            el.style.color = '#22c55e';
+        } else {
+            el.innerHTML = '❌ Админ: Не авторизован';
+            el.style.color = '#ef4444';
+        }
+    }
+}
+
+async function savePricesToGitHub() {
+    const token = localStorage.getItem('github_admin_token');
+    if (!token) {
+        showToast('⚠️ Войдите как администратор!');
+        return;
+    }
+    
+    try {
+        showToast('⏳ Сохранение...');
+        const prices = {};
+        SKINS_DATABASE.forEach(skin => { prices[skin.id] = skin.price; });
+        const marketData = { lastUpdate: Date.now(), updatedBy: state.userName || 'Admin', prices: prices };
+        
+        const url = `https://api.github.com/repos/${GITHUB_CONFIG.owner}/${GITHUB_CONFIG.repo}/contents/${GITHUB_CONFIG.path}`;
+        let sha = null;
+        const getResponse = await fetch(url, {
+            headers: { 'Authorization': `token ${token}`, 'Accept': 'application/vnd.github.v3+json' }
+        });
+        if (getResponse.ok) { const data = await getResponse.json(); sha = data.sha; }
+        
+        const content = btoa(unescape(encodeURIComponent(JSON.stringify(marketData, null, 2))));
+        const putResponse = await fetch(url, {
+            method: 'PUT',
+            headers: { 'Authorization': `token ${token}`, 'Accept': 'application/vnd.github.v3+json', 'Content-Type': 'application/json' },
+            body: JSON.stringify({ message: `🔄 Обновление цен (${new Date().toLocaleString()})`, content: content, sha: sha })
+        });
+        if (putResponse.ok) { showToast('✅ Цены синхронизированы!'); } 
+        else { const error = await putResponse.json(); showToast('❌ Ошибка: ' + (error.message || 'Неизвестная ошибка')); }
+    } catch (error) { console.error(error); showToast('❌ Ошибка синхронизации!'); }
+}
+
+async function loadPricesFromGitHub() {
+    try {
+        const url = `https://api.github.com/repos/${GITHUB_CONFIG.owner}/${GITHUB_CONFIG.repo}/contents/${GITHUB_CONFIG.path}`;
+        const response = await fetch(url, { headers: { 'Accept': 'application/vnd.github.v3+json' } });
+        if (!response.ok) { if (response.status === 404) return false; return false; }
+        const data = await response.json();
+        const content = decodeURIComponent(escape(atob(data.content)));
+        const marketData = JSON.parse(content);
+        if (marketData.prices) {
+            SKINS_DATABASE.forEach(skin => {
+                if (marketData.prices[skin.id] !== undefined) {
+                    skin.oldPrice = skin.price;
+                    skin.price = marketData.prices[skin.id];
+                }
+            });
+            renderShop();
+            renderInventory();
+            saveState();
+            return true;
+        }
+        return false;
+    } catch (error) { console.error(error); return false; }
+}
+
+window.adminPumpAllWithSync = async function(percent) {
+    if (!isAdminLoggedIn()) {
+        showToast('⚠️ Войдите как администратор!');
+        if (confirm('Войти как администратор?')) { adminLogin(); }
+        return;
+    }
+    SKINS_DATABASE.forEach(s => { s.oldPrice = s.price; s.price = Math.round(s.price * (1 + percent / 100)); });
+    renderShop();
+    renderInventory();
+    saveState();
+    await savePricesToGitHub();
+    showToast(`✅ ${percent > 0 ? 'Повышены' : 'Понижены'} на ${Math.abs(percent)}%`);
+};
+
+window.adminDumpAllWithSync = async function(percent) {
+    await adminPumpAllWithSync(-percent);
+};
+
+async function syncPricesOnLoad() {
+    const lastSync = parseInt(localStorage.getItem('lastPriceSync')) || 0;
+    const now = Date.now();
+    if (now - lastSync > 300000) {
+        await loadPricesFromGitHub();
+        localStorage.setItem('lastPriceSync', String(now));
+    }
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    setTimeout(syncPricesOnLoad, 2000);
+    updateAdminStatus();
+});
