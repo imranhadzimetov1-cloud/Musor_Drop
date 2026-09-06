@@ -139,60 +139,31 @@ const CASES_DATABASE = [
 ];
 
 // ==========================================
-// 5. СОСТОЯНИЕ
+// 5. ЗВУКИ
 // ==========================================
-function generateUserId() {
-    return 'user_' + Math.random().toString(36).substr(2, 9);
-}
+const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 
-const DEFAULT_STATE = {
-    userId: generateUserId(),
-    userName: "Игрок #1337",
-    balance: 115,
-    inventory: [],
-    casesOpened: 0,
-    history: [],
-    friends: [],
-    playerId: '#' + Math.floor(100000 + Math.random() * 900000),
-    bannedIds: []
-};
+function playSound(type) {
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
 
-let state = { ...DEFAULT_STATE };
-
-function loadState() {
-    try {
-        const savedData = localStorage.getItem('dropzone_state');
-        if (savedData) {
-            const parsed = JSON.parse(savedData);
-            state = { ...DEFAULT_STATE, ...parsed };
-            if (!Array.isArray(state.inventory)) state.inventory = [];
-            if (!Array.isArray(state.history)) state.history = [];
-            if (!Array.isArray(state.friends)) state.friends = [];
-            if (!Array.isArray(state.bannedIds)) state.bannedIds = [];
-            if (!state.userId) state.userId = generateUserId();
-            if (!state.playerId) state.playerId = '#' + Math.floor(100000 + Math.random() * 900000);
-        } else {
-            state = { ...DEFAULT_STATE };
-            saveState();
-        }
-    } catch (e) {
-        console.error("Ошибка загрузки:", e);
-        state = { ...DEFAULT_STATE };
+    if (type === 'tick') {
+        osc.frequency.setValueAtTime(200, audioCtx.currentTime);
+        gain.gain.setValueAtTime(0.05, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.05);
+        osc.start();
+        osc.stop(audioCtx.currentTime + 0.05);
+    } else if (type === 'win') {
+        osc.frequency.setValueAtTime(400, audioCtx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(800, audioCtx.currentTime + 0.3);
+        gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.5);
+        osc.start();
+        osc.stop(audioCtx.currentTime + 0.5);
     }
-    updateUI();
-    renderInventory();
-    renderLiveDrops();
-    renderFriends();
-    initPlayerId();
-}
-
-function saveState() {
-    try {
-        localStorage.setItem('dropzone_state', JSON.stringify(state));
-    } catch (e) {
-        console.error("Ошибка сохранения:", e);
-    }
-    updateUI();
 }
 
 // ==========================================
