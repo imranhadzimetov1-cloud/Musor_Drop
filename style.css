@@ -686,14 +686,21 @@ body {
 }
 
 /* ==========================================
-   КАЗИНО (РУЛЕТКА)
+   РУЛЕТКА (КАЗИНО)
    ========================================== */
+#wheelCanvas {
+    max-width: 100%;
+    height: auto;
+    cursor: default;
+}
+
 .casino-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
     gap: 12px;
     margin-top: 10px;
 }
+
 .casino-card {
     background: linear-gradient(145deg, #1a1d27, #13151e);
     border-radius: 14px;
@@ -707,10 +714,22 @@ body {
 .casino-card:hover {
     transform: translateY(-4px);
     border-color: #f59e0b;
+    box-shadow: 0 8px 25px rgba(245, 158, 11, 0.15);
 }
 .casino-card.selected {
     border-color: #f59e0b !important;
     box-shadow: 0 0 30px rgba(245, 158, 11, 0.3) !important;
+}
+.casino-card .skin-count-badge {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    background: #f59e0b;
+    color: #000;
+    font-size: 11px;
+    font-weight: 800;
+    padding: 2px 8px;
+    border-radius: 20px;
 }
 
 /* ==========================================
@@ -797,6 +816,10 @@ body {
         font-size: 11px;
         padding: 4px 10px;
     }
+    #wheelCanvas {
+        width: 250px !important;
+        height: 250px !important;
+    }
 }
 
 @media (max-width: 480px) {
@@ -847,5 +870,18 @@ body {
     }
     .casino-card {
         padding: 10px 6px;
+    }
+    .casino-card .skin-title {
+        font-size: 11px;
+    }
+    .casino-card .skin-img-box {
+        height: 50px;
+    }
+    .casino-card .skin-img-box img {
+        max-height: 45px;
+    }
+    #wheelCanvas {
+        width: 200px !important;
+        height: 200px !important;
     }
 }
