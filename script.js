@@ -72,7 +72,7 @@ function generateSkinTexture(weapon, skinName, rarity) {
 }
 
 // ==========================================
-// 2. БАЗА СКИНОВ (УПРОЩЁННАЯ ДЛЯ ТЕСТА)
+// БАЗА СКИНОВ
 // ==========================================
 const SKINS_DATABASE = [
     { id: 1, weapon: "P250", name: "P250 | Sand Dune", rarity: "COMMON", price: 2 },
@@ -108,13 +108,21 @@ const SKINS_DATABASE = [
     { id: 94, weapon: "★ M9 Bayonet", name: "★ M9 Bayonet | Crimson Web", rarity: "SECRET", price: 6100 },
     { id: 95, weapon: "AK-47", name: "AK-47 | Case Hardened", rarity: "SECRET", price: 2100 },
     { id: 96, weapon: "★ Sport Gloves", name: "★ Sport Gloves | Vice", rarity: "SECRET", price: 7800 },
-    { id: 97, weapon: "★ Xabib", name: "★ Xabib | TikTok", rarity: "SECRET", price: 50000 },
+    { id: 97, weapon: "★ Xabib", name: "★ Xabib | TikTok", rarity: "SECRET", price: 50000 }
 ];
 
+// Генерируем картинки
 SKINS_DATABASE.forEach(skin => {
-    skin.img = generateSkinTexture(skin.weapon, skin.name, skin.rarity);
+    skin.img = 'data:image/svg+xml;utf8,' + encodeURIComponent(`
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+            <rect width="100" height="100" rx="10" fill="#2a2e33"/>
+            <text x="50" y="50" text-anchor="middle" dy=".3em" fill="#fff" font-size="10">${skin.weapon}</text>
+        </svg>
+    `);
     skin.oldPrice = skin.price;
 });
+
+console.log('✅ База скинов загружена! Всего скинов:', SKINS_DATABASE.length);
 
 function getRarityColor(rarity) {
     switch(rarity) {
