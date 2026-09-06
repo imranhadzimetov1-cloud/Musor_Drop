@@ -107,8 +107,7 @@ const SKINS_DATABASE = [
     { id: 93, weapon: "★ Butterfly Knife", name: "★ Butterfly Knife | Doppler", rarity: "SECRET", price: 9200 },
     { id: 94, weapon: "★ M9 Bayonet", name: "★ M9 Bayonet | Crimson Web", rarity: "SECRET", price: 6100 },
     { id: 95, weapon: "AK-47", name: "AK-47 | Case Hardened", rarity: "SECRET", price: 2100 },
-    { id: 96, weapon: "★ Sport Gloves", name: "★ Sport Gloves | Vice", rarity: "SECRET", price: 7800 },
-    { id: 97, weapon: "★ Xabib", name: "★ Xabib | TikTok", rarity: "SECRET", price: 50000 },
+    { id: 96, weapon: "★ Sport Gloves", name: "★ Sport Gloves | Vice", rarity: "SECRET", price: 7800 }
 ];
 
 SKINS_DATABASE.forEach(skin => {
@@ -139,7 +138,28 @@ const CASES_DATABASE = [
 ];
 
 // ==========================================
-// 5. ЗВУКИ
+// 5. СОСТОЯНИЕ
+// ==========================================
+function generateUserId() {
+    return 'user_' + Math.random().toString(36).substr(2, 9);
+}
+
+const DEFAULT_STATE = {
+    userId: generateUserId(),
+    userName: "Игрок #1337",
+    balance: 115,
+    inventory: [],
+    casesOpened: 0,
+    history: [],
+    friends: [],
+    playerId: '#' + Math.floor(100000 + Math.random() * 900000),
+    bannedIds: []
+};
+
+let state = { ...DEFAULT_STATE };
+
+// ==========================================
+// 6. ЗВУКИ
 // ==========================================
 const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 
@@ -167,7 +187,46 @@ function playSound(type) {
 }
 
 // ==========================================
-// 6. ИНТЕРФЕЙС
+// 7. ЗАГРУЗКА/СОХРАНЕНИЕ
+// ==========================================
+function loadState() {
+    try {
+        const savedData = localStorage.getItem('dropzone_state');
+        if (savedData) {
+            const parsed = JSON.parse(savedData);
+            state = { ...DEFAULT_STATE, ...parsed };
+            if (!Array.isArray(state.inventory)) state.inventory = [];
+            if (!Array.isArray(state.history)) state.history = [];
+            if (!Array.isArray(state.friends)) state.friends = [];
+            if (!Array.isArray(state.bannedIds)) state.bannedIds = [];
+            if (!state.userId) state.userId = generateUserId();
+            if (!state.playerId) state.playerId = '#' + Math.floor(100000 + Math.random() * 900000);
+        } else {
+            state = { ...DEFAULT_STATE };
+            saveState();
+        }
+    } catch (e) {
+        console.error("Ошибка загрузки:", e);
+        state = { ...DEFAULT_STATE };
+    }
+    updateUI();
+    renderInventory();
+    renderLiveDrops();
+    renderFriends();
+    initPlayerId();
+}
+
+function saveState() {
+    try {
+        localStorage.setItem('dropzone_state', JSON.stringify(state));
+    } catch (e) {
+        console.error("Ошибка сохранения:", e);
+    }
+    updateUI();
+}
+
+// ==========================================
+// 8. ИНТЕРФЕЙС
 // ==========================================
 document.querySelectorAll('.nav-btn').forEach(btn => {
     btn.addEventListener('click', () => {
@@ -232,158 +291,6 @@ document.getElementById('add-balance-btn')?.addEventListener('click', () => {
     state.balance += 10;
     saveState();
     showToast("Баланс пополнен на 10 R!");
-});
-
-// ==========================================
-// 7. РЕНДЕР КЕЙСОВ И МАГАЗИНА
-// ==========================================
-// ==========================================
-// 7. КЕЙСЫ И МАГАЗИН
-// ==========================================
-function renderCases() {
-    const container = document.getElementById('cases-grid');
-    if (!container) return;
-    container.innerHTML = CASES_DATABASE.map(c => `
-        <div class="case-card">
-            <div class="case-image-box">
-                <img src="${c.items[0]?.img || ''}" alt="${c.name}" style="max-height:100px; object-fit:contain;">
-            </div>
-            <h3>${c.name}</h3>
-            <div class="case-price">${c.price} R</div>
-            <p style="font-size:11px; color:#8a99ad; margin-bottom:15px;">Предметов: ${c.items.length}</p>
-            <button class="btn" onclick="openCaseModal('${c.id}')">ОТКРЫТЬ</button>
-        </div>
-    `).join('');
-}
-
-function renderShop() {
-    const container = document.getElementById('shop-grid');
-    if (!container) return;
-
-    const countElem = document.getElementById('shop-total-count');
-    if (countElem) countElem.innerText = SKINS_DATABASE.length;
-
-    const searchInput = document.getElementById('shop-search');
-    const search = searchInput ? searchInput.value.toLowerCase() : '';
-
-    const activeFilterBtn = document.querySelector('.filter-btn.active');
-    const activeFilter = activeFilterBtn ? activeFilterBtn.dataset.rarity : 'ALL';
-
-    const sortInput = document.getElementById('shop-sort');
-    const sort = sortInput ? sortInput.value : 'default';
-
-    let filtered = SKINS_DATABASE.filter(s => {
-        const matchesSearch = s.name.toLowerCase().includes(search) || s.weapon.toLowerCase().includes(search);
-        const matchesRarity = activeFilter === 'ALL' || s.rarity === activeFilter;
-        return matchesSearch && matchesRarity;
-    });
-
-    if (sort === 'price-asc') filtered.sort((a,b) => a.price - b.price);
-    if (sort === 'price-desc') filtered.sort((a,b) => b.price - a.price);
-    if (sort === 'name') filtered.sort((a,b) => a.name.localeCompare(b.name));
-
-    container.innerHTML = filtered.map(s => {
-        let trendHTML = '';
-        if (s.oldPrice && s.oldPrice !== s.price) {
-            const diffPercent = Math.round(((s.price - s.oldPrice) / s.oldPrice) * 100);
-            if (diffPercent > 0) {
-                trendHTML = `<span style="color: #22c55e; font-weight: bold; font-size: 11px;">▲ +${diffPercent}%</span>`;
-            } else if (diffPercent < 0) {
-                trendHTML = `<span style="color: #ef4444; font-weight: bold; font-size: 11px;">▼ ${diffPercent}%</span>`;
-            }
-        }
-
-        return `
-            <div class="skin-card rarity-${s.rarity}">
-                <div class="skin-weapon">${s.weapon}</div>
-                <div class="skin-title">${s.name.includes('|') ? s.name.split('|')[1] : s.name}</div>
-                <div class="skin-img-box">
-                    <img src="${s.img}" alt="${s.name}" style="max-width:100%; max-height:80px; object-fit:contain;">
-                </div>
-                <div class="skin-price" style="display:flex; justify-content:center; align-items:center; gap:6px;">
-                    <span>${s.price} R</span>
-                    ${trendHTML}
-                </div>
-                <button type="button" class="btn" style="margin-top:8px; padding:6px; font-size:11px; width:100%; background:#4b69ff; cursor:pointer;" onclick="window.buySkin(${s.id})">КУПИТЬ</button>
-            </div>
-        `;
-    }).join('');
-}
-
-document.getElementById('shop-search')?.addEventListener('input', renderShop);
-document.getElementById('shop-sort')?.addEventListener('change', renderShop);
-document.querySelectorAll('.filter-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-        document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        renderShop();
-    });
-});
-// ==========================================
-// 8. ИНВЕНТАРЬ
-// ==========================================
-function renderInventory() {
-    const container = document.getElementById('inventory-grid');
-    if (!container) return;
-
-    if (!state.inventory || state.inventory.length === 0) {
-        container.innerHTML = '<div style="color: #94a3b8; grid-column: 1/-1; text-align: center; padding: 20px;">Инвентарь пуст</div>';
-        return;
-    }
-
-    container.innerHTML = state.inventory.map(item => {
-        const marketSkin = SKINS_DATABASE.find(s => Number(s.id) === Number(item.id));
-        const livePrice = marketSkin ? marketSkin.price : item.price;
-
-        return `
-            <div class="skin-card rarity-${item.rarity}">
-                ${item.count > 1 ? `<div class="skin-count">x${item.count}</div>` : ''}
-                <div class="skin-weapon">${item.weapon}</div>
-                <div class="skin-title">${item.name.includes('|') ? item.name.split('|')[1] : item.name}</div>
-                <div class="skin-img-box">
-                    <img src="${item.img}" alt="${item.name}" style="max-width:100%; max-height:80px; object-fit:contain;">
-                </div>
-                <div class="skin-price" style="color: #22c55e; font-weight: bold;">${livePrice} R</div>
-                <button type="button" class="btn btn-danger" style="margin-top:8px; padding:6px; font-size:11px; width:100%; cursor:pointer;" onclick="window.sellSkin(${item.id})">ПРОДАТЬ</button>
-            </div>
-        `;
-    }).join('');
-}
-
-window.sellSkin = function(skinId) {
-    if (!state.inventory || state.inventory.length === 0) return;
-
-    const itemIndex = state.inventory.findIndex(i => Number(i.id) === Number(skinId));
-    if (itemIndex === -1) {
-        showToast("Скин не найден!");
-        return;
-    }
-
-    const inventoryItem = state.inventory[itemIndex];
-    const marketSkin = SKINS_DATABASE.find(s => Number(s.id) === Number(skinId));
-    const currentMarketPrice = marketSkin ? marketSkin.price : inventoryItem.price;
-
-    state.balance += currentMarketPrice;
-
-    if (inventoryItem.count && inventoryItem.count > 1) {
-        inventoryItem.count -= 1;
-    } else {
-        state.inventory.splice(itemIndex, 1);
-    }
-
-    saveState();
-    showToast(`Продано за ${currentMarketPrice} R`);
-};
-
-document.getElementById('sell-all-btn')?.addEventListener('click', () => {
-    if (state.inventory.length === 0) return;
-    const totalSum = state.inventory.reduce((acc, item) => acc + (item.price * item.count), 0);
-    if (confirm(`Продать всё за ${totalSum} R?`)) {
-        state.balance += totalSum;
-        state.inventory = [];
-        saveState();
-        showToast(`Все проданы за ${totalSum} R`);
-    }
 });
 
 // ==========================================
@@ -468,8 +375,249 @@ document.querySelectorAll('.filter-btn').forEach(btn => {
         renderShop();
     });
 });
+
 // ==========================================
-// 10. ИСТОРИЯ И ПРОФИЛЬ
+// 10. ИНВЕНТАРЬ
+// ==========================================
+function renderInventory() {
+    const container = document.getElementById('inventory-grid');
+    if (!container) return;
+
+    if (!state.inventory || state.inventory.length === 0) {
+        container.innerHTML = '<div style="color: #94a3b8; grid-column: 1/-1; text-align: center; padding: 20px;">Инвентарь пуст</div>';
+        return;
+    }
+
+    container.innerHTML = state.inventory.map(item => {
+        const marketSkin = SKINS_DATABASE.find(s => Number(s.id) === Number(item.id));
+        const livePrice = marketSkin ? marketSkin.price : item.price;
+
+        return `
+            <div class="skin-card rarity-${item.rarity}">
+                ${item.count > 1 ? `<div class="skin-count">x${item.count}</div>` : ''}
+                <div class="skin-weapon">${item.weapon}</div>
+                <div class="skin-title">${item.name.includes('|') ? item.name.split('|')[1] : item.name}</div>
+                <div class="skin-img-box">
+                    <img src="${item.img}" alt="${item.name}" style="max-width:100%; max-height:80px; object-fit:contain;">
+                </div>
+                <div class="skin-price" style="color: #22c55e; font-weight: bold;">${livePrice} R</div>
+                <button type="button" class="btn btn-danger" style="margin-top:8px; padding:6px; font-size:11px; width:100%; cursor:pointer;" onclick="window.sellSkin(${item.id})">ПРОДАТЬ</button>
+            </div>
+        `;
+    }).join('');
+}
+
+window.sellSkin = function(skinId) {
+    if (!state.inventory || state.inventory.length === 0) return;
+
+    const itemIndex = state.inventory.findIndex(i => Number(i.id) === Number(skinId));
+    if (itemIndex === -1) {
+        showToast("Скин не найден!");
+        return;
+    }
+
+    const inventoryItem = state.inventory[itemIndex];
+    const marketSkin = SKINS_DATABASE.find(s => Number(s.id) === Number(skinId));
+    const currentMarketPrice = marketSkin ? marketSkin.price : inventoryItem.price;
+
+    state.balance += currentMarketPrice;
+
+    if (inventoryItem.count && inventoryItem.count > 1) {
+        inventoryItem.count -= 1;
+    } else {
+        state.inventory.splice(itemIndex, 1);
+    }
+
+    saveState();
+    showToast(`Продано за ${currentMarketPrice} R`);
+};
+
+document.getElementById('sell-all-btn')?.addEventListener('click', () => {
+    if (state.inventory.length === 0) return;
+    const totalSum = state.inventory.reduce((acc, item) => acc + (item.price * item.count), 0);
+    if (confirm(`Продать всё за ${totalSum} R?`)) {
+        state.balance += totalSum;
+        state.inventory = [];
+        saveState();
+        showToast(`Все проданы за ${totalSum} R`);
+    }
+});
+
+// ==========================================
+// 11. ОТКРЫТИЕ КЕЙСА
+// ==========================================
+let currentSpinCase = null;
+let isSpinning = false;
+let winningSkin = null;
+
+function getRandomSkinByChance(caseItems) {
+    const rand = Math.random() * 100;
+    let cumulative = 0;
+    let selectedRarity = 'COMMON';
+
+    for (const [rarity, chance] of Object.entries(DROP_CHANCES)) {
+        cumulative += chance;
+        if (rand <= cumulative) {
+            selectedRarity = rarity;
+            break;
+        }
+    }
+
+    let pool = caseItems.filter(i => i.rarity === selectedRarity);
+    if (pool.length === 0) pool = caseItems;
+    return pool[Math.floor(Math.random() * pool.length)];
+}
+
+window.openCaseModal = function(caseId) {
+    if (isSpinning) return;
+    const c = CASES_DATABASE.find(x => x.id === caseId);
+    if (!c) return;
+
+    if (state.balance < c.price) {
+        showToast("Недостаточно средств!");
+        return;
+    }
+
+    currentSpinCase = c;
+    document.getElementById('roulette-case-title').innerText = c.name;
+    document.getElementById('win-result').classList.add('hidden');
+    document.getElementById('roulette-modal').classList.add('active');
+
+    buildRouletteTrack();
+};
+
+document.getElementById('modal-close-btn')?.addEventListener('click', () => {
+    if (isSpinning) return;
+    document.getElementById('roulette-modal').classList.remove('active');
+});
+
+function buildRouletteTrack() {
+    const track = document.getElementById('roulette-track');
+    track.style.transition = 'none';
+    track.style.transform = 'translateX(0)';
+
+    const items = [];
+    for (let i = 0; i < 80; i++) {
+        items.push(currentSpinCase.items[Math.floor(Math.random() * currentSpinCase.items.length)]);
+    }
+
+    winningSkin = getRandomSkinByChance(currentSpinCase.items);
+    items[65] = winningSkin;
+
+    track.innerHTML = items.map(s => `
+        <div class="roulette-card rarity-${s.rarity}">
+            <div style="font-size:9px; color:#8a99ad;">${s.weapon}</div>
+            <div style="font-weight:bold; margin: 4px 0; font-size:10px;">${s.name.split('|')[1] || s.name}</div>
+            <img src="${s.img}" style="max-height:60px; object-fit:contain;">
+        </div>
+    `).join('');
+
+    setTimeout(startSpin, 300);
+}
+
+function startSpin() {
+    if (isSpinning) return;
+    isSpinning = true;
+
+    state.balance -= currentSpinCase.price;
+    state.casesOpened++;
+    saveState();
+
+    const track = document.getElementById('roulette-track');
+    const cardWidth = 140;
+    const targetOffset = -(65 * cardWidth - (document.querySelector('.roulette-container')?.offsetWidth / 2 || 300) + (cardWidth / 2));
+    const randomOffset = Math.floor(Math.random() * 80) - 40;
+    const finalTransform = targetOffset + randomOffset;
+
+    track.style.transition = 'transform 6s cubic-bezier(0.15, 0.9, 0.2, 1)';
+    track.style.transform = `translateX(${finalTransform}px)`;
+
+    let ticks = 0;
+    const interval = setInterval(() => {
+        if (ticks < 40) {
+            playSound('tick');
+            ticks++;
+        } else {
+            clearInterval(interval);
+        }
+    }, 120);
+
+    setTimeout(() => {
+        isSpinning = false;
+        playSound('win');
+        showWinResult();
+    }, 6200);
+}
+
+// ==========================================
+// 12. РЕЗУЛЬТАТ ВЫИГРЫША (С КНОПКАМИ)
+// ==========================================
+function showWinResult() {
+    const resultBox = document.getElementById('win-result');
+    const cardBox = document.getElementById('win-card');
+    
+    cardBox.innerHTML = renderSkinCardHTML(winningSkin);
+    document.getElementById('win-sell-price').innerText = winningSkin.price;
+    resultBox.classList.remove('hidden');
+
+    if (['SECRET', 'LEGENDARY'].includes(winningSkin.rarity)) {
+        document.getElementById('win-light').style.boxShadow = `0 0 100px 50px ${getRarityColor(winningSkin.rarity)}`;
+    }
+
+    addDropToHistory(winningSkin);
+}
+
+// КНОПКИ ПОСЛЕ ОТКРЫТИЯ КЕЙСА
+document.getElementById('win-keep-btn')?.addEventListener('click', function() {
+    if (winningSkin) {
+        addItemToInventory(winningSkin);
+        document.getElementById('roulette-modal').classList.remove('active');
+        showToast(`${winningSkin.name} добавлен в инвентарь!`);
+        renderInventory();
+        updateUI();
+        winningSkin = null;
+    }
+});
+
+document.getElementById('win-sell-btn')?.addEventListener('click', function() {
+    if (winningSkin) {
+        state.balance += winningSkin.price;
+        saveState();
+        document.getElementById('roulette-modal').classList.remove('active');
+        showToast(`Продано за ${winningSkin.price} R`);
+        updateUI();
+        winningSkin = null;
+    }
+});
+
+function addItemToInventory(skin) {
+    if (!state.inventory) state.inventory = [];
+    const existing = state.inventory.find(i => Number(i.id) === Number(skin.id));
+    if (existing) {
+        existing.count = (existing.count || 1) + 1;
+    } else {
+        state.inventory.push({ ...skin, count: 1 });
+    }
+    saveState();
+}
+
+function renderSkinCardHTML(skin, count = 0, showSellBtn = false) {
+    return `
+        <div class="skin-card rarity-${skin.rarity}">
+            ${count > 1 ? `<div class="skin-count">x${count}</div>` : ''}
+            <div class="skin-weapon">${skin.weapon}</div>
+            <div class="skin-title">${skin.name.includes('|') ? skin.name.split('|')[1] : skin.name}</div>
+            <div class="skin-img-box">
+                <img src="${skin.img}" alt="${skin.name}" style="max-width:100%; max-height:80px; object-fit:contain;">
+            </div>
+            <div class="skin-price">${skin.price} R</div>
+            ${showSellBtn ? `<button class="btn btn-danger" style="margin-top:8px; padding:6px; font-size:11px;" onclick="sellSkin(${skin.id})">ПРОДАТЬ</button>` : ''}
+        </div>
+    `;
+}
+
+// ==========================================
+// 13. ИСТОРИЯ И ПРОФИЛЬ
 // ==========================================
 function addDropToHistory(skin) {
     state.history.unshift({ ...skin, time: new Date().toLocaleTimeString() });
@@ -512,7 +660,7 @@ document.getElementById('edit-name-btn')?.addEventListener('click', () => {
 });
 
 // ==========================================
-// 11. ПОКУПКА
+// 14. ПОКУПКА
 // ==========================================
 window.buySkin = function(skinId) {
     const skin = SKINS_DATABASE.find(s => Number(s.id) === Number(skinId));
@@ -532,7 +680,7 @@ window.buySkin = function(skinId) {
 };
 
 // ==========================================
-// 12. ДРУЗЬЯ
+// 15. ДРУЗЬЯ
 // ==========================================
 function initPlayerId() {
     if (!state.playerId) {
@@ -612,7 +760,7 @@ function renderFriends() {
 }
 
 // ==========================================
-// 13. АДМИН-ПАНЕЛЬ
+// 16. АДМИН-ПАНЕЛЬ
 // ==========================================
 const ADMIN_PASSWORD = "TikTok";
 
@@ -756,7 +904,7 @@ window.logoutAdmin = function() {
 };
 
 // ==========================================
-// 14. ИНИЦИАЛИЗАЦИЯ
+// 17. ИНИЦИАЛИЗАЦИЯ
 // ==========================================
 document.addEventListener('DOMContentLoaded', () => {
     loadState();
@@ -773,15 +921,13 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 });
 
-
 // ==========================================
-// 13. САПЁР (С ВЫБОРОМ КОЛИЧЕСТВА)
+// 18. САПЁР (КВАДРАТИКИ)
 // ==========================================
 
 const SAPPER_MULTIPLIERS = [0, 0, 0, 2, 2, 3, 3, 5, 10];
 let sapperGame = {
     selectedSkin: null,
-    betAmount: 1,
     grid: [],
     revealed: [],
     isGameOver: false
@@ -801,23 +947,20 @@ function initSapperGame() {
     sapperGame.revealed = new Array(9).fill(false);
     sapperGame.isGameOver = false;
     sapperGame.selectedSkin = null;
-    sapperGame.betAmount = 1;
     renderSapperGrid();
-    document.getElementById('bet-amount-container').style.display = 'none';
     const status = document.getElementById('game-status');
-    if (status) {
-        status.textContent = 'Выберите скин и количество для ставки';
-        status.style.color = '#94a3b8';
-    }
-    updateBetDisplay();
+    if (status) status.textContent = 'Выберите скин и нажмите на квадрат!';
 }
 
 function renderSapperGrid() {
     const container = document.getElementById('sapper-grid');
-    if (!container) return;
+    if (!container) {
+        console.warn('⚠️ sapper-grid не найден!');
+        return;
+    }
     
     if (!sapperGame.grid || sapperGame.grid.length === 0) {
-        container.innerHTML = '<div style="grid-column:1/-1; text-align:center; color:#ef4444;">Ошибка! Перезагрузите страницу.</div>';
+        container.innerHTML = '<div style="grid-column:1/-1; text-align:center; color:#ef4444; padding:20px;">Ошибка! Перезагрузите страницу.</div>';
         return;
     }
 
@@ -865,55 +1008,114 @@ function renderSapperGrid() {
     }).join('');
 }
 
-// Установка количества скинов для ставки
-function setBetAmount(amount) {
+window.sapperClick = function(index) {
+    if (sapperGame.isGameOver) {
+        showToast('Игра уже закончена! Нажмите "Новая игра"');
+        return;
+    }
+
+    if (sapperGame.revealed[index]) {
+        showToast('Этот квадрат уже открыт!');
+        return;
+    }
+
     if (!sapperGame.selectedSkin) {
-        showToast('⚠️ Сначала выберите скин!');
+        showToast('⚠️ Сначала выберите скин! Нажмите "Выбрать" на карточке скина.');
         return;
     }
-    const maxAvailable = sapperGame.selectedSkin.count || 0;
-    if (amount > maxAvailable) {
-        showToast(`⚠️ У вас только ${maxAvailable} скинов ${sapperGame.selectedSkin.name}!`);
-        amount = maxAvailable;
-    }
-    if (amount < 1) {
-        showToast('❌ Минимум 1 скин!');
+
+    // Находим скин в инвентаре
+    const itemIndex = state.inventory.findIndex(i => i.id === sapperGame.selectedSkin.id);
+    if (itemIndex === -1) {
+        showToast('❌ Ошибка! Скин не найден!');
+        sapperGame.isGameOver = true;
+        renderSapperGrid();
         return;
     }
-    sapperGame.betAmount = amount;
-    updateBetDisplay();
-    showToast(`✅ Ставка: ${amount} ${sapperGame.selectedSkin.name}`);
-}
 
-function applyCustomBet() {
-    const input = document.getElementById('custom-bet-amount');
-    if (!input) return;
-    let amount = parseInt(input.value) || 1;
-    if (amount < 1) amount = 1;
-    const maxAvailable = sapperGame.selectedSkin ? sapperGame.selectedSkin.count : 0;
-    if (maxAvailable > 0 && amount > maxAvailable) {
-        amount = maxAvailable;
-        showToast(`⚠️ Максимум ${maxAvailable} скинов`);
-    }
-    input.value = amount;
-    setBetAmount(amount);
-}
+    const item = state.inventory[itemIndex];
+    const value = sapperGame.grid[index];
+    const win = value > 0;
 
-function updateBetDisplay() {
-    const display = document.getElementById('bet-amount-display');
-    const maxDisplay = document.getElementById('bet-max-display');
-    if (display) {
-        if (sapperGame.selectedSkin) {
-            const maxCount = sapperGame.selectedSkin.count || 0;
-            display.textContent = `Выбрано: ${sapperGame.betAmount} скин(ов)`;
-            if (maxDisplay) maxDisplay.textContent = `(доступно: ${maxCount})`;
+    // Открываем квадрат
+    sapperGame.revealed[index] = true;
+    renderSapperGrid();
+
+    let resultText = '';
+
+    if (win) {
+        item.count += value;
+        resultText = `🎉 ПОБЕДА! x${value}! +${value} ${item.name}! Теперь x${item.count}`;
+        showToast(`✅ +${value} ${item.name}!`);
+    } else {
+        if (item.count > 1) {
+            item.count -= 1;
+            resultText = `💀 ПРОИГРЫШ! 0x! Потерян ${item.name}. Осталось x${item.count}`;
         } else {
-            display.textContent = 'Выберите скин';
-            if (maxDisplay) maxDisplay.textContent = '';
+            state.inventory.splice(itemIndex, 1);
+            resultText = `💀 ПРОИГРЫШ! 0x! ${item.name} полностью потерян!`;
         }
+        showToast(`❌ Потерян ${item.name}`);
     }
-}
 
+    sapperGame.isGameOver = true;
+    
+    // Показываем все квадраты
+    for (let i = 0; i < sapperGame.revealed.length; i++) {
+        sapperGame.revealed[i] = true;
+    }
+    renderSapperGrid();
+
+    const status = document.getElementById('game-status');
+    if (status) {
+        status.innerHTML = resultText;
+        status.style.color = win ? '#22c55e' : '#ef4444';
+    }
+
+    saveState();
+    renderInventory();
+    updateUI();
+
+    sapperGame.selectedSkin = null;
+};
+
+window.resetSapperGame = function() {
+    if (!sapperGame.isGameOver) {
+        if (!confirm('Начать новую игру? Текущая будет сброшена.')) return;
+    }
+    initSapperGame();
+    const status = document.getElementById('game-status');
+    if (status) {
+        status.textContent = 'Выберите скин и нажмите на квадрат!';
+        status.style.color = '#94a3b8';
+    }
+    showToast('🔄 Новая игра начата!');
+};
+
+// ВЫБОР СКИНА ДЛЯ САПЁРА
+window.selectSkinForCasino = function(skinId) {
+    const item = state.inventory.find(i => i.id === skinId);
+    if (!item || item.count < 1) {
+        showToast('❌ Скин недоступен!');
+        return;
+    }
+    
+    if (sapperGame.isGameOver) {
+        showToast('Игра закончена! Нажмите "Новая игра"');
+        return;
+    }
+    
+    sapperGame.selectedSkin = item;
+    renderCasinoInventory();
+    const status = document.getElementById('game-status');
+    if (status) {
+        status.textContent = `✅ Выбран скин: ${item.name}`;
+        status.style.color = '#f59e0b';
+    }
+    showToast(`✅ Выбран: ${item.name}`);
+};
+
+// РЕНДЕР СКИНОВ В КАЗИНО
 function renderCasinoInventory() {
     const container = document.getElementById('casino-inventory');
     if (!container) return;
@@ -949,7 +1151,7 @@ function renderCasinoInventory() {
         const isDisabled = sapperGame.isGameOver;
         
         return `
-            <div class="casino-card rarity-${item.rarity} ${isSelected ? 'selected' : ''}" onclick="${!isDisabled ? `selectSkinForCasino(${item.id})` : ''}" style="background: linear-gradient(145deg, #1a1d27, #13151e); border-radius:14px; padding:12px 8px; text-align:center; border:2px solid ${isSelected ? '#f59e0b' : '#2a2d3a'}; position:relative; cursor:${isDisabled ? 'not-allowed' : 'pointer'}; transition:all 0.3s; opacity:${isDisabled ? 0.6 : 1};">
+            <div class="skin-card rarity-${item.rarity} ${isSelected ? 'selected' : ''}" onclick="${!isDisabled ? `selectSkinForCasino(${item.id})` : ''}" style="background: #1a1d27; border-radius:12px; padding:12px 8px; text-align:center; border:2px solid ${isSelected ? '#f59e0b' : '#2a2d3a'}; position:relative; cursor:${isDisabled ? 'not-allowed' : 'pointer'}; transition:all 0.3s; opacity:${isDisabled ? 0.6 : 1};">
                 <div style="height:4px; border-radius:4px 4px 0 0; background:${rarityColor}; position:absolute; top:0; left:0; right:0;"></div>
                 ${item.count > 1 ? `<div style="position:absolute; top:6px; right:6px; background:#f59e0b; color:#000; font-size:11px; font-weight:800; padding:1px 8px; border-radius:20px;">x${item.count}</div>` : ''}
                 <div style="font-size:11px; color:#8a99ad; margin-top:6px;">${weapon}</div>
@@ -966,118 +1168,18 @@ function renderCasinoInventory() {
     }).join('');
 }
 
-window.selectSkinForCasino = function(skinId) {
-    const item = state.inventory.find(i => i.id === skinId);
-    if (!item || item.count < 1) {
-        showToast('❌ Скин недоступен!');
-        return;
-    }
-    
-    if (sapperGame.isGameOver) {
-        showToast('Игра закончена! Нажмите "Новая игра"');
-        return;
-    }
-    
-    sapperGame.selectedSkin = item;
-    sapperGame.betAmount = 1;
-    document.getElementById('custom-bet-amount').value = 1;
-    document.getElementById('bet-amount-container').style.display = 'block';
-    updateBetDisplay();
-    renderCasinoInventory();
-    const status = document.getElementById('game-status');
-    if (status) {
-        status.textContent = `✅ Выбран скин: ${item.name}. Выберите количество для ставки!`;
-        status.style.color = '#f59e0b';
-    }
-    showToast(`✅ Выбран: ${item.name}`);
-};
-
-window.sapperClick = function(index) {
-    if (sapperGame.isGameOver) {
-        showToast('Игра уже закончена! Нажмите "Новая игра"');
-        return;
-    }
-
-    if (sapperGame.revealed[index]) {
-        showToast('Этот квадрат уже открыт!');
-        return;
-    }
-
-    if (!sapperGame.selectedSkin) {
-        showToast('⚠️ Сначала выберите скин! Нажмите "Выбрать" на карточке скина.');
-        return;
-    }
-
-    // Проверяем, что у игрока достаточно скинов для ставки
-    const itemIndex = state.inventory.findIndex(i => i.id === sapperGame.selectedSkin.id);
-    if (itemIndex === -1) {
-        showToast('❌ Ошибка! Скин не найден в инвентаре!');
-        return;
-    }
-    
-    const item = state.inventory[itemIndex];
-    const betAmount = sapperGame.betAmount;
-    
-    if (item.count < betAmount) {
-        showToast(`⚠️ У вас только ${item.count} скинов! Снизьте ставку.`);
-        return;
-    }
-
-    sapperGame.revealed[index] = true;
-    const value = sapperGame.grid[index];
-    const win = value > 0;
-
-    let resultText = '';
-
-    if (win) {
-        // При победе умножаем количество скинов на множитель
-        // Ставим betAmount, получаем betAmount * value
-        const winnings = betAmount * value;
-        item.count += winnings; // Добавляем выигранные скины (без потери ставки!)
-        resultText = `🎉 ПОБЕДА! x${value}! Ставка ${betAmount} → +${winnings} ${item.name}! Теперь x${item.count}`;
-        showToast(`✅ +${winnings} ${item.name}!`);
-    } else {
-        // При проигрыше теряем только поставленное количество
-        item.count -= betAmount;
-        if (item.count <= 0) {
-            state.inventory.splice(itemIndex, 1);
-            resultText = `💀 ПРОИГРЫШ! 0x! Потеряно ${betAmount} ${item.name} полностью!`;
-        } else {
-            resultText = `💀 ПРОИГРЫШ! 0x! Потеряно ${betAmount} ${item.name}. Осталось x${item.count}`;
-        }
-        showToast(`❌ Потеряно ${betAmount} ${item.name}`);
-    }
-
-    sapperGame.isGameOver = true;
-    
-    for (let i = 0; i < sapperGame.revealed.length; i++) {
-        sapperGame.revealed[i] = true;
-    }
-    renderSapperGrid();
-
-    const status = document.getElementById('game-status');
-    if (status) {
-        status.innerHTML = resultText;
-        status.style.color = win ? '#22c55e' : '#ef4444';
-    }
-
-    saveState();
-    renderInventory();
-    renderCasinoInventory();
-    updateUI();
-
-    sapperGame.selectedSkin = null;
-    document.getElementById('bet-amount-container').style.display = 'none';
-    renderCasinoInventory();
-};
-
-window.resetSapperGame = function() {
-    if (!sapperGame.isGameOver) {
-        if (!confirm('Начать новую игру? Текущая будет сброшена.')) return;
-    }
+// ИНИЦИАЛИЗАЦИЯ САПЁРА
+document.addEventListener('DOMContentLoaded', function() {
+    // ... существующий код ...
     initSapperGame();
-    document.getElementById('bet-amount-container').style.display = 'none';
-    document.getElementById('custom-bet-amount').value = 1;
-    renderCasinoInventory();
-    showToast('🔄 Новая игра начата!');
-};
+});
+
+// ОБНОВЛЕНИЕ ПРИ ПЕРЕКЛЮЧЕНИИ НА ВКЛАДКУ КАЗИНО
+document.querySelectorAll('.nav-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+        if (this.dataset.tab === 'casino') {
+            renderCasinoInventory();
+            if (!sapperGame.grid.length) initSapperGame();
+        }
+    });
+});
