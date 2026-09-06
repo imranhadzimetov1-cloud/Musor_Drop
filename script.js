@@ -107,7 +107,8 @@ const SKINS_DATABASE = [
     { id: 93, weapon: "★ Butterfly Knife", name: "★ Butterfly Knife | Doppler", rarity: "SECRET", price: 9200 },
     { id: 94, weapon: "★ M9 Bayonet", name: "★ M9 Bayonet | Crimson Web", rarity: "SECRET", price: 6100 },
     { id: 95, weapon: "AK-47", name: "AK-47 | Case Hardened", rarity: "SECRET", price: 2100 },
-    { id: 96, weapon: "★ Sport Gloves", name: "★ Sport Gloves | Vice", rarity: "SECRET", price: 7800 }
+    { id: 96, weapon: "★ Sport Gloves", name: "★ Sport Gloves | Vice", rarity: "SECRET", price: 7800 },
+    { id: 97, weapon: "★ Xabib", name: "★ Xabib | TikTok", rarity: "SECRET", price: 50000 },
 ];
 
 SKINS_DATABASE.forEach(skin => {
