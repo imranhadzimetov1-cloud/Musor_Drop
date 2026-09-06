@@ -525,40 +525,19 @@ function showWinResult() {
     const resultBox = document.getElementById('win-result');
     const cardBox = document.getElementById('win-card');
     
+    // Показываем выигранный скин
     cardBox.innerHTML = renderSkinCardHTML(winningSkin);
     document.getElementById('win-sell-price').innerText = winningSkin.price;
     resultBox.classList.remove('hidden');
 
+    // Подсветка для редких скинов
     if (['SECRET', 'LEGENDARY'].includes(winningSkin.rarity)) {
         document.getElementById('win-light').style.boxShadow = `0 0 100px 50px ${getRarityColor(winningSkin.rarity)}`;
     }
 
+    // Добавляем в историю
     addDropToHistory(winningSkin);
 }
-
-document.getElementById('win-keep-btn').addEventListener('click', () => {
-    addItemToInventory(winningSkin);
-    document.getElementById('roulette-modal').classList.remove('active');
-    showToast(`${winningSkin.name} добавлен в инвентарь!`);
-});
-
-document.getElementById('win-sell-btn').addEventListener('click', () => {
-    state.balance += winningSkin.price;
-    saveState();
-    document.getElementById('roulette-modal').classList.remove('active');
-    showToast(`Продано за ${winningSkin.price} R`);
-});
-
-function addItemToInventory(skin) {
-    const existing = state.inventory.find(i => i.id === skin.id);
-    if (existing) {
-        existing.count++;
-    } else {
-        state.inventory.push({ ...skin, count: 1 });
-    }
-    saveState();
-}
-
 // ==========================================
 // 10. ИСТОРИЯ И ПРОФИЛЬ
 // ==========================================
