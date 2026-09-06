@@ -387,128 +387,87 @@ document.getElementById('sell-all-btn')?.addEventListener('click', () => {
 });
 
 // ==========================================
-// 9. ЛОГИКА РУЛЕТКИ И ВЫПАДЕНИЯ (АНИМАЦИЯ)
+// 9. КЕЙСЫ
 // ==========================================
-let currentSpinCase = null;
-let isSpinning = false;
-let winningSkin = null;
-
-function getRandomSkinByChance(caseItems) {
-    const rand = Math.random() * 100;
-    let cumulative = 0;
-    let selectedRarity = 'COMMON';
-
-    for (const [rarity, chance] of Object.entries(DROP_CHANCES)) {
-        cumulative += chance;
-        if (rand <= cumulative) {
-            selectedRarity = rarity;
-            break;
-        }
-    }
-
-    let pool = caseItems.filter(i => i.rarity === selectedRarity);
-    if (pool.length === 0) pool = caseItems;
-    return pool[Math.floor(Math.random() * pool.length)];
-}
-
-window.openCaseModal = function(caseId) {
-    if (isSpinning) return;
-    const c = CASES_DATABASE.find(x => x.id === caseId);
-    if (!c) return;
-
-    if (state.balance < c.price) {
-        showToast("Недостаточно средств на балансе!");
-        return;
-    }
-
-    currentSpinCase = c;
-    document.getElementById('roulette-case-title').innerText = c.name;
-    document.getElementById('win-result').classList.add('hidden');
-    document.getElementById('roulette-modal').classList.add('active');
-
-    buildRouletteTrack();
-};
-
-document.getElementById('modal-close-btn').addEventListener('click', () => {
-    if (isSpinning) return;
-    document.getElementById('roulette-modal').classList.remove('active');
-});
-
-function buildRouletteTrack() {
-    const track = document.getElementById('roulette-track');
-    track.style.transition = 'none';
-    track.style.transform = 'translateX(0)';
-
-    const items = [];
-    for (let i = 0; i < 80; i++) {
-        items.push(currentSpinCase.items[Math.floor(Math.random() * currentSpinCase.items.length)]);
-    }
-
-    winningSkin = getRandomSkinByChance(currentSpinCase.items);
-    items[65] = winningSkin;
-
-    track.innerHTML = items.map(s => `
-        <div class="roulette-card rarity-${s.rarity}">
-            <div style="font-size:9px; color:#8a99ad;">${s.weapon}</div>
-            <div style="font-weight:bold; margin: 4px 0; font-size:10px;">${s.name.split('|')[1] || s.name}</div>
-            <img src="${s.img}" style="max-height:60px; object-fit:contain;">
+function renderCases() {
+    const container = document.getElementById('cases-grid');
+    if (!container) return;
+    container.innerHTML = CASES_DATABASE.map(c => `
+        <div class="case-card">
+            <div class="case-image-box">
+                <img src="${c.items[0]?.img || ''}" alt="${c.name}" style="max-height:100px; object-fit:contain;">
+            </div>
+            <h3>${c.name}</h3>
+            <div class="case-price">${c.price} R</div>
+            <p style="font-size:11px; color:#8a99ad; margin-bottom:15px;">Предметов: ${c.items.length}</p>
+            <button class="btn" onclick="openCaseModal('${c.id}')">ОТКРЫТЬ</button>
         </div>
     `).join('');
-
-    setTimeout(startSpin, 300);
 }
 
-function startSpin() {
-    if (isSpinning) return;
-    isSpinning = true;
+function renderShop() {
+    const container = document.getElementById('shop-grid');
+    if (!container) return;
 
-    state.balance -= currentSpinCase.price;
-    state.casesOpened++;
-    saveState();
+    const countElem = document.getElementById('shop-total-count');
+    if (countElem) countElem.innerText = SKINS_DATABASE.length;
 
-    const track = document.getElementById('roulette-track');
-    const cardWidth = 140;
-    const targetOffset = -(65 * cardWidth - (document.querySelector('.roulette-container').offsetWidth / 2) + (cardWidth / 2));
-    const randomOffset = Math.floor(Math.random() * 80) - 40;
-    const finalTransform = targetOffset + randomOffset;
+    const searchInput = document.getElementById('shop-search');
+    const search = searchInput ? searchInput.value.toLowerCase() : '';
 
-    track.style.transition = 'transform 6s cubic-bezier(0.15, 0.9, 0.2, 1)';
-    track.style.transform = `translateX(${finalTransform}px)`;
+    const activeFilterBtn = document.querySelector('.filter-btn.active');
+    const activeFilter = activeFilterBtn ? activeFilterBtn.dataset.rarity : 'ALL';
 
-    let ticks = 0;
-    const interval = setInterval(() => {
-        if (ticks < 40) {
-            playSound('tick');
-            ticks++;
-        } else {
-            clearInterval(interval);
+    const sortInput = document.getElementById('shop-sort');
+    const sort = sortInput ? sortInput.value : 'default';
+
+    let filtered = SKINS_DATABASE.filter(s => {
+        const matchesSearch = s.name.toLowerCase().includes(search) || s.weapon.toLowerCase().includes(search);
+        const matchesRarity = activeFilter === 'ALL' || s.rarity === activeFilter;
+        return matchesSearch && matchesRarity;
+    });
+
+    if (sort === 'price-asc') filtered.sort((a,b) => a.price - b.price);
+    if (sort === 'price-desc') filtered.sort((a,b) => b.price - a.price);
+    if (sort === 'name') filtered.sort((a,b) => a.name.localeCompare(b.name));
+
+    container.innerHTML = filtered.map(s => {
+        let trendHTML = '';
+        if (s.oldPrice && s.oldPrice !== s.price) {
+            const diffPercent = Math.round(((s.price - s.oldPrice) / s.oldPrice) * 100);
+            if (diffPercent > 0) {
+                trendHTML = `<span style="color: #22c55e; font-weight: bold; font-size: 11px;">▲ +${diffPercent}%</span>`;
+            } else if (diffPercent < 0) {
+                trendHTML = `<span style="color: #ef4444; font-weight: bold; font-size: 11px;">▼ ${diffPercent}%</span>`;
+            }
         }
-    }, 120);
 
-    setTimeout(() => {
-        isSpinning = false;
-        playSound('win');
-        showWinResult();
-    }, 6200);
+        return `
+            <div class="skin-card rarity-${s.rarity}">
+                <div class="skin-weapon">${s.weapon}</div>
+                <div class="skin-title">${s.name.includes('|') ? s.name.split('|')[1] : s.name}</div>
+                <div class="skin-img-box">
+                    <img src="${s.img}" alt="${s.name}" style="max-width:100%; max-height:80px; object-fit:contain;">
+                </div>
+                <div class="skin-price" style="display:flex; justify-content:center; align-items:center; gap:6px;">
+                    <span>${s.price} R</span>
+                    ${trendHTML}
+                </div>
+                <button type="button" class="btn" style="margin-top:8px; padding:6px; font-size:11px; width:100%; background:#4b69ff; cursor:pointer;" onclick="window.buySkin(${s.id})">КУПИТЬ</button>
+            </div>
+        `;
+    }).join('');
 }
 
-function showWinResult() {
-    const resultBox = document.getElementById('win-result');
-    const cardBox = document.getElementById('win-card');
-    
-    // Показываем выигранный скин
-    cardBox.innerHTML = renderSkinCardHTML(winningSkin);
-    document.getElementById('win-sell-price').innerText = winningSkin.price;
-    resultBox.classList.remove('hidden');
-
-    // Подсветка для редких скинов
-    if (['SECRET', 'LEGENDARY'].includes(winningSkin.rarity)) {
-        document.getElementById('win-light').style.boxShadow = `0 0 100px 50px ${getRarityColor(winningSkin.rarity)}`;
-    }
-
-    // Добавляем в историю
-    addDropToHistory(winningSkin);
-}
+document.getElementById('shop-search')?.addEventListener('input', renderShop);
+document.getElementById('shop-sort')?.addEventListener('change', renderShop);
+document.querySelectorAll('.filter-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+        document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        renderShop();
+    });
+});
 // ==========================================
 // 10. ИСТОРИЯ И ПРОФИЛЬ
 // ==========================================
