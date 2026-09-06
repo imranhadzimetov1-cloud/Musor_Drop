@@ -69,7 +69,7 @@
             <div class="inventory-grid" id="inventory-grid"></div>
         </section>
 
-        <!-- ВКЛАДКА: САПЁР (ВМЕСТО РУЛЕТКИ) -->
+        <!-- ВКЛАДКА: САПЁР -->
 <section id="tab-casino" class="tab-content">
     <h2 class="section-title">💣 САПЁР (Умножай скины)</h2>
 
@@ -92,7 +92,27 @@
 
     <!-- ИГРА -->
     <div style="text-align: center; margin: 20px 0;">
-        <div style="font-size: 16px; color: #94a3b8; margin-bottom: 10px;" id="game-status">Выберите скин и нажмите на квадрат</div>
+        <div style="font-size: 16px; color: #94a3b8; margin-bottom: 10px;" id="game-status">Выберите скин и количество для ставки</div>
+        
+        <!-- ВЫБОР КОЛИЧЕСТВА -->
+        <div id="bet-amount-container" style="display: none; margin-bottom: 15px; background: #1a1d27; padding: 15px; border-radius: 12px; border: 1px solid #2a2d3a;">
+            <div style="font-size: 14px; color: #94a3b8; margin-bottom: 8px;">📊 Количество скинов для ставки:</div>
+            <div style="display: flex; gap: 8px; align-items: center; justify-content: center; flex-wrap: wrap;">
+                <button onclick="setBetAmount(1)" style="background: #2a2d3a; color: white; border: none; padding: 6px 14px; border-radius: 6px; cursor: pointer; font-weight: bold;">1</button>
+                <button onclick="setBetAmount(5)" style="background: #2a2d3a; color: white; border: none; padding: 6px 14px; border-radius: 6px; cursor: pointer; font-weight: bold;">5</button>
+                <button onclick="setBetAmount(10)" style="background: #2a2d3a; color: white; border: none; padding: 6px 14px; border-radius: 6px; cursor: pointer; font-weight: bold;">10</button>
+                <button onclick="setBetAmount(25)" style="background: #2a2d3a; color: white; border: none; padding: 6px 14px; border-radius: 6px; cursor: pointer; font-weight: bold;">25</button>
+                <button onclick="setBetAmount(50)" style="background: #2a2d3a; color: white; border: none; padding: 6px 14px; border-radius: 6px; cursor: pointer; font-weight: bold;">50</button>
+                <button onclick="setBetAmount(100)" style="background: #2a2d3a; color: white; border: none; padding: 6px 14px; border-radius: 6px; cursor: pointer; font-weight: bold;">100</button>
+                <input type="number" id="custom-bet-amount" min="1" max="999" value="1" style="width: 70px; padding: 6px; border-radius: 6px; background: #1e293b; border: 1px solid #475569; color: white; text-align: center;">
+                <button onclick="applyCustomBet()" style="background: #4b69ff; color: white; border: none; padding: 6px 14px; border-radius: 6px; cursor: pointer; font-weight: bold;">✅</button>
+            </div>
+            <div style="font-size: 12px; color: #64748b; margin-top: 6px;">
+                <span id="bet-amount-display">Выбрано: 1 скин</span>
+                <span id="bet-max-display" style="margin-left: 12px;"></span>
+            </div>
+        </div>
+
         <div id="sapper-grid" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; max-width: 400px; margin: 0 auto;">
             <!-- 9 квадратов будут созданы JS -->
         </div>
@@ -104,24 +124,12 @@
     </div>
 
     <p style="color:#8a99ad; margin-bottom:15px; font-size:14px; text-align:center;">
-        ⚡ Выберите скин, затем нажмите на <strong style="color:#f59e0b;">квадрат</strong> чтобы открыть множитель!
+        ⚡ Выберите скин, укажите количество, затем нажмите на <strong style="color:#f59e0b;">квадрат</strong> чтобы открыть множитель!
     </p>
 
     <!-- СКИНЫ ДЛЯ СТАВКИ -->
     <div id="casino-inventory" class="casino-grid"></div>
 </section>
-            <!-- СКИНЫ ДЛЯ СТАВКИ -->
-            <div id="casino-inventory" class="casino-grid"></div>
-
-            <!-- РЕЗУЛЬТАТ -->
-            <div id="casino-result" style="display:none; margin-top:20px; padding:25px; background: linear-gradient(135deg, #1a1a2e, #16213e); border-radius:16px; text-align:center; border:3px solid #4b69ff; animation: fadeIn 0.5s ease;">
-                <div id="casino-result-icon" style="font-size:64px; margin-bottom:10px;">🎲</div>
-                <h3 id="casino-result-text" style="font-size:22px; margin-bottom:8px;"></h3>
-                <div id="casino-result-detail" style="font-size:16px; color:#94a3b8; margin-bottom:15px;"></div>
-                <button class="btn" onclick="document.getElementById('casino-result').style.display='none';" style="width:auto; padding:12px 40px; background:#4b69ff; color:white; border:none; border-radius:10px; font-weight:bold; cursor:pointer; transition:0.3s;">✕ Закрыть</button>
-            </div>
-        </section>
-
         <!-- ВКЛАДКА: ПРОФИЛЬ -->
         <section id="tab-profile" class="tab-content">
             <h2 class="section-title">ПРОФИЛЬ ПОЛЬЗОВАТЕЛЯ</h2>
