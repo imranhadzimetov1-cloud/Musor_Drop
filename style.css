@@ -970,3 +970,550 @@ body {
 .admin-toast.show {
     right: 20px;
 }
+
+
+
+
+/* ==========================================
+   МОБИЛЬНАЯ ВЕРСИЯ (АДАПТИВ ДЛЯ СМАРТФОНОВ)
+   ========================================== */
+
+/* Основные настройки для мобильных */
+@media (max-width: 768px) {
+    /* 1. Общие отступы */
+    body {
+        padding: 0 !important;
+        font-size: 14px;
+        overflow-x: hidden;
+    }
+
+    .main-container {
+        padding: 10px 12px !important;
+        margin: 10px auto !important;
+        max-width: 100% !important;
+    }
+
+    /* 2. Шапка (компактная) */
+    .header {
+        padding: 10px 15px !important;
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+
+    .logo {
+        font-size: 18px !important;
+    }
+
+    .user-balance-box {
+        padding: 4px 12px !important;
+        font-size: 14px !important;
+    }
+
+    .user-balance-box strong {
+        font-size: 15px !important;
+    }
+
+    #add-balance-btn {
+        width: 28px !important;
+        height: 28px !important;
+        font-size: 16px !important;
+    }
+
+    /* 3. Навигация (верхняя) */
+    .nav {
+        width: 100%;
+        justify-content: space-around;
+        gap: 2px !important;
+        order: 3;
+    }
+
+    .nav-btn {
+        padding: 6px 10px !important;
+        font-size: 11px !important;
+        flex: 1;
+        text-align: center;
+    }
+
+    /* 4. Лента выпадений */
+    .live-drop-section {
+        padding: 6px 0 !important;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .live-drop-title {
+        font-size: 9px !important;
+        padding: 0 10px !important;
+    }
+
+    .drop-mini-card {
+        min-width: 90px !important;
+        height: 38px !important;
+        font-size: 9px !important;
+        padding: 2px 6px !important;
+    }
+
+    .drop-mini-card div:first-child {
+        font-size: 8px !important;
+    }
+
+    /* 5. Сетка кейсов (2 колонки) */
+    .cases-grid {
+        grid-template-columns: repeat(2, 1fr) !important;
+        gap: 10px !important;
+    }
+
+    .case-card {
+        padding: 12px 8px !important;
+        border-radius: 10px !important;
+    }
+
+    .case-card h3 {
+        font-size: 12px !important;
+    }
+
+    .case-image-box {
+        height: 80px !important;
+    }
+
+    .case-svg {
+        width: 70px !important;
+        height: 70px !important;
+    }
+
+    .case-price {
+        font-size: 14px !important;
+    }
+
+    .case-card .btn {
+        padding: 10px !important;
+        font-size: 12px !important;
+    }
+
+    /* 6. Магазин и инвентарь (2 колонки) */
+    .shop-grid,
+    .inventory-grid {
+        grid-template-columns: repeat(2, 1fr) !important;
+        gap: 8px !important;
+    }
+
+    .skin-card {
+        padding: 8px 6px !important;
+        border-radius: 8px !important;
+    }
+
+    .skin-weapon {
+        font-size: 10px !important;
+    }
+
+    .skin-title {
+        font-size: 11px !important;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 100%;
+    }
+
+    .skin-img-box {
+        height: 55px !important;
+        margin: 4px 0 !important;
+    }
+
+    .skin-img-box img {
+        max-height: 50px !important;
+        max-width: 100% !important;
+        object-fit: contain !important;
+    }
+
+    .skin-price {
+        font-size: 12px !important;
+        margin: 2px 0 !important;
+    }
+
+    .skin-count {
+        font-size: 9px !important;
+        padding: 1px 5px !important;
+        top: 4px !important;
+        right: 4px !important;
+    }
+
+    .skin-card .btn {
+        padding: 8px 4px !important;
+        font-size: 11px !important;
+        min-height: 34px;
+    }
+
+    /* 7. Фильтры и поиск */
+    .shop-controls {
+        flex-direction: column !important;
+        align-items: stretch !important;
+        gap: 8px !important;
+    }
+
+    .filter-buttons {
+        display: flex !important;
+        flex-wrap: wrap !important;
+        gap: 4px !important;
+        justify-content: center;
+    }
+
+    .filter-btn {
+        padding: 6px 10px !important;
+        font-size: 10px !important;
+        flex: 0 0 auto !important;
+    }
+
+    .input-field,
+    .select-field {
+        width: 100% !important;
+        height: 38px !important;
+        font-size: 14px !important;
+        padding: 8px 12px !important;
+        min-width: unset !important;
+    }
+
+    /* 8. Модальное окно рулетки */
+    .modal-content {
+        padding: 16px !important;
+        width: 95% !important;
+        max-width: 95% !important;
+        margin: 10px !important;
+    }
+
+    .modal-header h2 {
+        font-size: 16px !important;
+    }
+
+    .roulette-container {
+        height: 120px !important;
+        margin: 15px 0 !important;
+    }
+
+    .roulette-track {
+        height: 100px !important;
+        top: 10px !important;
+    }
+
+    .roulette-card {
+        min-width: 100px !important;
+        max-width: 100px !important;
+        height: 100px !important;
+        font-size: 9px !important;
+        padding: 4px !important;
+    }
+
+    .roulette-card img {
+        max-height: 40px !important;
+    }
+
+    .win-card {
+        width: 140px !important;
+        margin: 12px auto !important;
+    }
+
+    .win-actions {
+        flex-direction: column !important;
+        gap: 8px !important;
+        max-width: 100% !important;
+    }
+
+    .win-actions .btn {
+        padding: 12px !important;
+        font-size: 14px !important;
+    }
+
+    /* 9. Профиль */
+    .profile-header {
+        flex-direction: column !important;
+        text-align: center !important;
+        gap: 10px !important;
+        padding: 16px !important;
+    }
+
+    .profile-avatar {
+        font-size: 32px !important;
+        padding: 12px !important;
+    }
+
+    .profile-stats {
+        grid-template-columns: repeat(2, 1fr) !important;
+        gap: 8px !important;
+    }
+
+    .stat-box {
+        padding: 10px !important;
+    }
+
+    .stat-value {
+        font-size: 16px !important;
+    }
+
+    .stat-label {
+        font-size: 10px !important;
+    }
+
+    .rarity-stats-grid {
+        gap: 4px !important;
+    }
+
+    .rarity-stats-grid .filter-btn {
+        font-size: 9px !important;
+        padding: 4px 8px !important;
+    }
+
+    /* 10. Друзья */
+    .friend-add-row {
+        flex-direction: column !important;
+        gap: 6px !important;
+    }
+
+    .friend-add-row input {
+        width: 100% !important;
+        height: 38px !important;
+    }
+
+    .friend-add-row .btn {
+        width: 100% !important;
+        padding: 10px !important;
+    }
+
+    .friend-item {
+        padding: 8px 10px !important;
+        flex-wrap: wrap !important;
+        gap: 6px !important;
+    }
+
+    .friend-item .friend-info {
+        gap: 6px !important;
+    }
+
+    .friend-item .friend-avatar {
+        width: 32px !important;
+        height: 32px !important;
+    }
+
+    .friend-item .friend-info div:first-child {
+        font-size: 12px !important;
+    }
+
+    .friend-item .friend-info div:last-child {
+        font-size: 10px !important;
+    }
+
+    /* 11. Админ-панель */
+    .admin-container {
+        padding: 12px !important;
+        margin: 10px 0 !important;
+        border-radius: 10px !important;
+    }
+
+    .admin-tabs {
+        gap: 4px !important;
+        flex-wrap: wrap !important;
+    }
+
+    .tab-btn {
+        padding: 6px 10px !important;
+        font-size: 11px !important;
+        flex: 1;
+        text-align: center;
+        min-width: 40px;
+    }
+
+    .admin-inline {
+        flex-direction: column !important;
+        align-items: stretch !important;
+        gap: 6px !important;
+    }
+
+    .admin-container input,
+    .admin-container select {
+        width: 100% !important;
+        min-width: unset !important;
+        height: 38px !important;
+        font-size: 13px !important;
+    }
+
+    .admin-btn-group {
+        flex-wrap: wrap !important;
+        gap: 6px !important;
+    }
+
+    .admin-container .btn {
+        flex: 1 !important;
+        min-width: 60px !important;
+        padding: 8px 12px !important;
+        font-size: 12px !important;
+        justify-content: center !important;
+    }
+
+    .admin-group {
+        gap: 6px !important;
+    }
+
+    /* 12. Уведомления */
+    #toast-container {
+        bottom: 70px !important;
+        right: 10px !important;
+        left: 10px !important;
+        width: auto !important;
+        max-width: 100% !important;
+    }
+
+    .toast {
+        font-size: 13px !important;
+        padding: 10px 16px !important;
+        width: 100% !important;
+    }
+
+    /* 13. Экран бана */
+    .banned-screen h1 {
+        font-size: 28px !important;
+    }
+
+    .banned-screen p {
+        font-size: 14px !important;
+        padding: 0 20px !important;
+    }
+
+    /* 14. Админ-тост */
+    .admin-toast {
+        top: 10px !important;
+        right: -300px !important;
+        padding: 10px 16px !important;
+        font-size: 12px !important;
+        max-width: 90% !important;
+    }
+
+    .admin-toast.show {
+        right: 10px !important;
+    }
+}
+
+/* Для самых маленьких экранов (до 380px) */
+@media (max-width: 380px) {
+    .cases-grid {
+        grid-template-columns: repeat(2, 1fr) !important;
+        gap: 6px !important;
+    }
+
+    .shop-grid,
+    .inventory-grid {
+        grid-template-columns: repeat(2, 1fr) !important;
+        gap: 5px !important;
+    }
+
+    .skin-card {
+        padding: 5px 4px !important;
+    }
+
+    .skin-title {
+        font-size: 10px !important;
+    }
+
+    .skin-img-box {
+        height: 45px !important;
+    }
+
+    .skin-img-box img {
+        max-height: 40px !important;
+    }
+
+    .skin-price {
+        font-size: 10px !important;
+    }
+
+    .skin-card .btn {
+        font-size: 9px !important;
+        padding: 6px 2px !important;
+        min-height: 28px !important;
+    }
+
+    .case-card {
+        padding: 8px 4px !important;
+    }
+
+    .case-card h3 {
+        font-size: 10px !important;
+    }
+
+    .case-image-box {
+        height: 60px !important;
+    }
+
+    .case-svg {
+        width: 55px !important;
+        height: 55px !important;
+    }
+
+    .case-price {
+        font-size: 12px !important;
+    }
+
+    .case-card .btn {
+        font-size: 10px !important;
+        padding: 8px !important;
+    }
+
+    .filter-btn {
+        font-size: 8px !important;
+        padding: 4px 6px !important;
+    }
+}
+
+/* Для планшетов (600-900px) */
+@media (min-width: 600px) and (max-width: 900px) {
+    .cases-grid {
+        grid-template-columns: repeat(3, 1fr) !important;
+    }
+
+    .shop-grid,
+    .inventory-grid {
+        grid-template-columns: repeat(3, 1fr) !important;
+    }
+}
+
+/* Исправление для iPhone с вырезом */
+@supports (padding: max(0px)) {
+    .header {
+        padding-top: max(12px, env(safe-area-inset-top)) !important;
+        padding-left: max(15px, env(safe-area-inset-left)) !important;
+        padding-right: max(15px, env(safe-area-inset-right)) !important;
+    }
+
+    .modal-content {
+        padding-bottom: max(16px, env(safe-area-inset-bottom)) !important;
+    }
+}
+
+/* Плавное появление карточек */
+.skin-card,
+.case-card {
+    animation: fadeInUp 0.3s ease forwards;
+    opacity: 0;
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Задержки для анимации карточек */
+.skin-card:nth-child(1) { animation-delay: 0.05s; }
+.skin-card:nth-child(2) { animation-delay: 0.10s; }
+.skin-card:nth-child(3) { animation-delay: 0.15s; }
+.skin-card:nth-child(4) { animation-delay: 0.20s; }
+.skin-card:nth-child(5) { animation-delay: 0.25s; }
+.skin-card:nth-child(6) { animation-delay: 0.30s; }
+.skin-card:nth-child(7) { animation-delay: 0.35s; }
+.skin-card:nth-child(8) { animation-delay: 0.40s; }
+.skin-card:nth-child(9) { animation-delay: 0.45s; }
+.skin-card:nth-child(10) { animation-delay: 0.50s; }
+.skin-card:nth-child(11) { animation-delay: 0.55s; }
+.skin-card:nth-child(12) { animation-delay: 0.60s; }
