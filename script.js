@@ -2,11 +2,11 @@
 // 1. КОНФИГУРАЦИЯ И ВЕРОЯТНОСТИ (ШАНСЫ)
 // ==========================================
 const DROP_CHANCES = {
-    COMMON: 60.0,    // 60%
-    RARE: 25.0,      // 25%
-    EPIC: 10.0,      // 10%
-    LEGENDARY: 4.5,  // 4.5%
-    SECRET: 0.5      // 0.5%
+    COMMON: 60.0,
+    RARE: 25.0,
+    EPIC: 10.0,
+    LEGENDARY: 4.5,
+    SECRET: 0.5
 };
 
 // ==========================================
@@ -72,7 +72,7 @@ function generateSkinTexture(weapon, skinName, rarity) {
 }
 
 // ==========================================
-// ПОЛНАЯ РАСШИРЕННАЯ БАЗА СКИНОВ CS2
+// ПОЛНАЯ БАЗА СКИНОВ CS2
 // ==========================================
 const SKINS_DATABASE = [
     { id: 1, weapon: "P250", name: "P250 | Sand Dune", rarity: "COMMON", price: 2 },
@@ -138,16 +138,15 @@ const CASES_DATABASE = [
 ];
 
 // ==========================================
-// 4. НАДЕЖНОЕ СОСТОЯНИЕ И LOCALSTORAGE (ИСПРАВЛЕНО)
+// 4. СОСТОЯНИЕ И LOCALSTORAGE
 // ==========================================
-
 function generateUserId() {
     return 'user_' + Math.random().toString(36).substr(2, 9);
 }
 
 const DEFAULT_STATE = {
     userId: generateUserId(),
-    userName: "Player #???",
+    userName: "Игрок #1337",
     balance: 115,
     inventory: [],
     casesOpened: 0,
@@ -187,6 +186,8 @@ function loadState() {
     renderLiveDrops();
     renderFriends();
     initPlayerId();
+    renderCasinoInventory();
+    drawWheel();
 }
 
 function saveState() {
@@ -200,7 +201,7 @@ function saveState() {
 }
 
 // ==========================================
-// 5. AUDIO API (ЗВУКИ ВРАЩЕНИЯ)
+// 5. AUDIO API
 // ==========================================
 const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 
@@ -236,6 +237,11 @@ document.querySelectorAll('.nav-btn').forEach(btn => {
         document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
         btn.classList.add('active');
         document.getElementById(`tab-${btn.dataset.tab}`).classList.add('active');
+        
+        if (btn.dataset.tab === 'casino') {
+            renderCasinoInventory();
+            drawWheel();
+        }
     });
 });
 
@@ -446,7 +452,7 @@ document.getElementById('sell-all-btn')?.addEventListener('click', () => {
 });
 
 // ==========================================
-// 9. ЛОГИКА РУЛЕТКИ И ВЫПАДЕНИЯ
+// 9. ЛОГИКА РУЛЕТКИ (КЕЙСЫ)
 // ==========================================
 let currentSpinCase = null;
 let isSpinning = false;
@@ -685,713 +691,15 @@ window.copyMyId = function() {
     showToast("Ваш ID скопирован!");
 };
 
-window.sendFriendRequest = function() {
-    const input = document.getElementById('friend-id-input');
-    if (!input) return;
-    const targetId = input.value.trim();
-
-    if (!targetId) { showToast("Введите ID!"); return; }
-    if (targetId === state.playerId) { showToast("Нельзя добавить себя!"); return; }
-    if (!state.friends) state.friends = [];
-    if (state.friends.some(f => f.id === targetId)) { showToast("Уже в друзьях!"); return; }
-
-    const newFriend = {
-        id: targetId,
-        name: `Игрок ${targetId}`,
-        avatar: `https://api.dicebear.com/7.x/bottts/svg?seed=${targetId}`,
-        status: Math.random() > 0.3 ? 'online' : 'offline',
-        level: Math.floor(Math.random() * 50) + 1
-    };
-
-    state.friends.push(newFriend);
-    saveState();
-    renderFriends();
-    input.value = '';
-    showToast(`Игрок ${targetId} добавлен!`);
-};
-
-window.removeFriend = function(friendId) {
-    if (!state.friends) return;
-    state.friends = state.friends.filter(f => f.id !== friendId);
-    saveState();
-    renderFriends();
-    showToast("Удален из друзей");
-};
-
-function renderFriends() {
-    const container = document.getElementById('friends-list');
-    const countElem = document.getElementById('friends-count');
-    if (!container) return;
-
-    if (!state.friends) state.friends = [];
-    if (countElem) countElem.innerText = state.friends.length;
-
-    if (state.friends.length === 0) {
-        container.innerHTML = `<div style="color: #64748b; font-size: 13px; text-align: center; padding: 10px;">У вас пока нет друзей.</div>`;
-        return;
-    }
-
-    container.innerHTML = state.friends.map(friend => `
-        <div style="display: flex; align-items: center; justify-content: space-between; background: #1e293b; padding: 10px; border-radius: 8px; border: 1px solid #334155;">
-            <div style="display: flex; align-items: center; gap: 10px;">
-                <div style="position: relative; width: 36px; height: 36px;">
-                    <img src="${friend.avatar}" style="width: 100%; height: 100%; border-radius: 50%; background: #0f172a;">
-                    <span style="position: absolute; bottom: 0; right: 0; width: 10px; height: 10px; border-radius: 50%; background: ${friend.status === 'online' ? '#22c55e' : '#64748b'}; border: 2px solid #1e293b;"></span>
-                </div>
-                <div>
-                    <div style="font-size: 13px; font-weight: bold; color: white;">${friend.name}</div>
-                    <div style="font-size: 11px; color: #94a3b8;">ID: ${friend.id} • Уровень ${friend.level || 1}</div>
-                </div>
-            </div>
-            <button onclick="removeFriend('${friend.id}')" style="background: rgba(239, 68, 68, 0.15); color: #ef4444; border: 1px solid #ef4444; border-radius: 6px; padding: 4px 8px; font-size: 11px; cursor: pointer;">Удалить</button>
-        </div>
-    `).join('');
-}
-
 // ==========================================
-// 13. АДМИН-ПАНЕЛЬ
-// ==========================================
-const ADMIN_PASSWORD = "TikTok";
-
-function showAdminNotice(text) {
-    const toast = document.getElementById('admin-toast');
-    if (!toast) return;
-    toast.textContent = text;
-    toast.classList.add('show');
-    clearTimeout(toastTimeout);
-    toastTimeout = setTimeout(() => toast.classList.remove('show'), 3000);
-}
-let toastTimeout;
-
-function populateAdminDropdowns() {
-    const giveSelect = document.getElementById('admin-give-skin-select');
-    const marketSelect = document.getElementById('admin-market-skin-select');
-
-    if (SKINS_DATABASE && SKINS_DATABASE.length > 0) {
-        const options = SKINS_DATABASE.map(s => `<option value="${s.id}">${s.name} (${s.price} R)</option>`).join('');
-        if (giveSelect) giveSelect.innerHTML = options;
-        if (marketSelect) marketSelect.innerHTML = options;
-    }
-}
-
-window.loginAdmin = function() {
-    const input = document.getElementById('admin-login-pass');
-    if (!input) return;
-
-    if (input.value === ADMIN_PASSWORD) {
-        const panel = document.getElementById('admin-panel');
-        if (panel) panel.style.display = 'block';
-        sessionStorage.setItem('isAdminLoggedIn', 'true');
-        populateAdminDropdowns();
-        showAdminNotice("Доступ открыт!");
-    } else {
-        showAdminNotice("Неверный пароль!");
-    }
-};
-
-window.switchAdminTab = function(tabName) {
-    const tabs = document.querySelectorAll('.tab-btn');
-    const contents = document.querySelectorAll('.admin-tab-content');
-
-    tabs.forEach(btn => btn.classList.remove('active'));
-    contents.forEach(content => content.classList.remove('active'));
-
-    if (window.event && window.event.target) {
-        window.event.target.classList.add('active');
-    }
-
-    const activeContent = document.getElementById(`tab-${tabName}`);
-    if (activeContent) {
-        activeContent.classList.add('active');
-    }
-};
-
-window.adminAddMoney = function() {
-    const amount = Number(document.getElementById('admin-money-amount')?.value) || 0;
-    state.balance = (state.balance || 0) + amount;
-    saveState();
-    showAdminNotice(`Добавлено: +${amount} R`);
-};
-
-window.adminSetMoney = function() {
-    const amount = Number(document.getElementById('admin-money-amount')?.value) || 0;
-    state.balance = amount;
-    saveState();
-    showAdminNotice(`Баланс: ${amount} R`);
-};
-
-window.adminResetMoney = function() {
-    state.balance = 0;
-    saveState();
-    showAdminNotice("Баланс сброшен");
-};
-
-window.adminGiveSkin = function() {
-    const skinId = Number(document.getElementById('admin-give-skin-select')?.value);
-    if (!skinId) return;
-    const skin = SKINS_DATABASE.find(s => s.id === skinId);
-    if (!skin) return;
-    addItemToInventory(skin);
-    showAdminNotice(`Выдан: ${skin.name}`);
-};
-
-window.adminBanPlayer = function() {
-    const targetId = document.getElementById('admin-target-id')?.value.trim();
-    if (!targetId) return showAdminNotice("Введите ID!");
-    if (!state.bannedIds) state.bannedIds = [];
-    if (!state.bannedIds.includes(targetId)) state.bannedIds.push(targetId);
-    saveState();
-    showAdminNotice(`Игрок ${targetId} забанен!`);
-};
-
-window.adminUnbanPlayer = function() {
-    const targetId = document.getElementById('admin-target-id')?.value.trim();
-    if (state.bannedIds) {
-        state.bannedIds = state.bannedIds.filter(id => id !== targetId);
-        saveState();
-    }
-    showAdminNotice(`Игрок ${targetId} разбанен`);
-};
-
-window.adminUpdateMarketPrice = function() {
-    const id = Number(document.getElementById('admin-market-skin-select')?.value);
-    const price = Number(document.getElementById('admin-market-price-input')?.value);
-    const skin = SKINS_DATABASE.find(s => s.id === id);
-    if (skin && price > 0) {
-        skin.oldPrice = skin.price;
-        skin.price = price;
-        renderShop();
-        populateAdminDropdowns();
-        showAdminNotice(`Новая цена: ${price} R`);
-    }
-};
-
-window.adminPumpAll = function(percent) {
-    SKINS_DATABASE.forEach(s => {
-        s.oldPrice = s.price;
-        s.price = Math.round(s.price * (1 + percent / 100));
-    });
-    saveState();
-    renderShop();
-    showAdminNotice(`+${percent}% к ценам!`);
-};
-
-window.adminDumpAll = function(percent) {
-    SKINS_DATABASE.forEach(s => {
-        s.oldPrice = s.price;
-        s.price = Math.max(1, Math.round(s.price * (1 - percent / 100)));
-    });
-    saveState();
-    renderShop();
-    showAdminNotice(`-${percent}% к ценам!`);
-};
-
-window.logoutAdmin = function() {
-    sessionStorage.removeItem('isAdminLoggedIn');
-    const panel = document.getElementById('admin-panel');
-    if (panel) panel.style.display = 'none';
-    showAdminNotice("Выход из админки");
-};
-
-// ==========================================
-// 14. ИНИЦИАЛИЗАЦИЯ
-// ==========================================
-window.addEventListener('DOMContentLoaded', () => {
-    console.log('🚀 СТРАНИЦА ЗАГРУЖЕНА!');
-    
-    loadState();
-    renderCases();
-    renderShop();
-    renderLiveDrops();
-    renderFriends();
-    initPlayerId();
-    populateAdminDropdowns();
-    
-    if (sessionStorage.getItem('isAdminLoggedIn') === 'true') {
-        const panel = document.getElementById('admin-panel');
-        if (panel) panel.style.display = 'block';
-    }
-    
-    console.log('✅ ВСЕ ЗАГРУЖЕНО! Баланс:', state.balance);
-});
-
-console.log('🔥 СКРИПТ ЗАГРУЖЕН!');
-
-
-// ==========================================
-// СИНХРОНИЗАЦИЯ ЦЕН ЧЕРЕЗ GITHUB
-// ==========================================
-
-const GITHUB_CONFIG = {
-    owner: 'imranhadzimetov1-cloud',
-    repo: 'Musor_Drop',
-    path: 'market_prices1122.json'
-};
-
-// ==========================================
-// 1. ВХОД АДМИНА
-// ==========================================
-function adminLogin() {
-    const token = prompt('🔑 Введите GitHub токен:');
-    if (!token) return;
-    if (token.startsWith('ghp_')) {
-        localStorage.setItem('github_admin_token', token);
-        alert('✅ Токен сохранен!');
-        showToast('✅ Вы вошли как администратор!');
-        updateAdminStatus();
-    } else {
-        alert('❌ Токен должен начинаться с "ghp_"');
-    }
-}
-
-// ==========================================
-// 2. ВЫХОД
-// ==========================================
-function adminLogout() {
-    localStorage.removeItem('github_admin_token');
-    updateAdminStatus();
-    showToast('✅ Вы вышли из администратора');
-}
-
-// ==========================================
-// 3. ПРОВЕРКА СТАТУСА
-// ==========================================
-function isAdminLoggedIn() {
-    return !!localStorage.getItem('github_admin_token');
-}
-
-function updateAdminStatus() {
-    const el = document.getElementById('admin-status');
-    if (el) {
-        if (isAdminLoggedIn()) {
-            el.innerHTML = '✅ Админ: Вход выполнен';
-            el.style.color = '#22c55e';
-            el.style.borderColor = '#22c55e';
-        } else {
-            el.innerHTML = '❌ Админ: Не авторизован';
-            el.style.color = '#ef4444';
-            el.style.borderColor = '#ef4444';
-        }
-    }
-}
-
-// ==========================================
-// 4. СОХРАНЕНИЕ ЦЕН НА GITHUB
-// ==========================================
-async function savePricesToGitHub() {
-    const token = localStorage.getItem('github_admin_token');
-    if (!token) {
-        showToast('⚠️ Войдите как администратор!');
-        return;
-    }
-    
-    try {
-        showToast('⏳ Сохранение цен на сервер...');
-        
-        const prices = {};
-        SKINS_DATABASE.forEach(skin => {
-            prices[skin.id] = skin.price;
-        });
-        
-        const marketData = {
-            lastUpdate: Date.now(),
-            updatedBy: state.userName || 'Admin',
-            prices: prices
-        };
-        
-        const url = `https://api.github.com/repos/${GITHUB_CONFIG.owner}/${GITHUB_CONFIG.repo}/contents/${GITHUB_CONFIG.path}`;
-        
-        let sha = null;
-        const getResponse = await fetch(url, {
-            headers: {
-                'Authorization': `token ${token}`,
-                'Accept': 'application/vnd.github.v3+json'
-            }
-        });
-        
-        if (getResponse.ok) {
-            const data = await getResponse.json();
-            sha = data.sha;
-        }
-        
-        const content = btoa(unescape(encodeURIComponent(JSON.stringify(marketData, null, 2))));
-        
-        const putResponse = await fetch(url, {
-            method: 'PUT',
-            headers: {
-                'Authorization': `token ${token}`,
-                'Accept': 'application/vnd.github.v3+json',
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                message: `🔄 Обновление цен (${new Date().toLocaleString()})`,
-                content: content,
-                sha: sha
-            })
-        });
-        
-        if (putResponse.ok) {
-            showToast('✅ Цены синхронизированы с сервером!');
-        } else {
-            const error = await putResponse.json();
-            showToast('❌ Ошибка: ' + (error.message || 'Неизвестная ошибка'));
-        }
-        
-    } catch (error) {
-        console.error('❌ Ошибка:', error);
-        showToast('❌ Ошибка синхронизации!');
-    }
-}
-
-// ==========================================
-// 5. ЗАГРУЗКА ЦЕН С GITHUB (ДЛЯ ВСЕХ)
-// ==========================================
-async function loadPricesFromGitHub() {
-    try {
-        const url = `https://api.github.com/repos/${GITHUB_CONFIG.owner}/${GITHUB_CONFIG.repo}/contents/${GITHUB_CONFIG.path}`;
-        
-        const response = await fetch(url, {
-            headers: { 'Accept': 'application/vnd.github.v3+json' }
-        });
-        
-        if (!response.ok) {
-            if (response.status === 404) {
-                console.log('📭 Файл с ценами еще не создан');
-                return false;
-            }
-            return false;
-        }
-        
-        const data = await response.json();
-        const content = decodeURIComponent(escape(atob(data.content)));
-        const marketData = JSON.parse(content);
-        
-        if (marketData.prices) {
-            SKINS_DATABASE.forEach(skin => {
-                if (marketData.prices[skin.id] !== undefined) {
-                    skin.oldPrice = skin.price;
-                    skin.price = marketData.prices[skin.id];
-                }
-            });
-            
-            console.log('✅ Цены загружены с сервера!');
-            renderShop();
-            renderInventory();
-            saveState();
-            return true;
-        }
-        
-        return false;
-    } catch (error) {
-        console.error('❌ Ошибка загрузки цен:', error);
-        return false;
-    }
-}
-
-// ==========================================
-// 6. НОВЫЕ КНОПКИ ДЛЯ АДМИНА (С СИНХРОНИЗАЦИЕЙ)
-// ==========================================
-window.adminPumpAllWithSync = async function(percent) {
-    if (!isAdminLoggedIn()) {
-        showToast('⚠️ Войдите как администратор!');
-        if (confirm('Войти как администратор?')) {
-            adminLogin();
-        }
-        return;
-    }
-    
-    // Меняем цены локально
-    SKINS_DATABASE.forEach(s => {
-        s.oldPrice = s.price;
-        s.price = Math.round(s.price * (1 + percent / 100));
-    });
-    
-    renderShop();
-    renderInventory();
-    saveState();
-    
-    // Сохраняем на GitHub
-    await savePricesToGitHub();
-    showToast(`✅ Цены ${percent > 0 ? 'повышены' : 'понижены'} на ${Math.abs(percent)}%`);
-};
-
-window.adminDumpAllWithSync = async function(percent) {
-    await adminPumpAllWithSync(-percent);
-};
-
-// ==========================================
-// 7. АВТОЗАГРУЗКА ПРИ СТАРТЕ
-// ==========================================
-async function syncPricesOnLoad() {
-    const lastSync = parseInt(localStorage.getItem('lastPriceSync')) || 0;
-    const now = Date.now();
-    
-    if (now - lastSync > 300000) { // 5 минут
-        await loadPricesFromGitHub();
-        localStorage.setItem('lastPriceSync', String(now));
-    }
-}
-
-// ==========================================
-// 8. ИНИЦИАЛИЗАЦИЯ
-// ==========================================
-document.addEventListener('DOMContentLoaded', function() {
-    setTimeout(syncPricesOnLoad, 2000);
-    updateAdminStatus();
-});
-
-// ==========================================
-// КАЗИК (Удвой или потеряй)
-// ==========================================
-
-// Функция рендеринга скинов в казике
-function renderCasinoInventory() {
-    const container = document.getElementById('casino-inventory');
-    if (!container) return;
-
-    if (!state.inventory || state.inventory.length === 0) {
-        container.innerHTML = '<div style="color:#94a3b8; grid-column:1/-1; text-align:center; padding:20px;">У вас нет скинов для ставок!</div>';
-        return;
-    }
-
-    container.innerHTML = state.inventory.map(item => {
-        // Отображаем каждый скин с кнопкой "Поставить"
-        const skin = SKINS_DATABASE.find(s => s.id === item.id);
-        const img = skin ? skin.img : item.img;
-        return `
-            <div class="skin-card rarity-${item.rarity}">
-                <div class="skin-count">x${item.count}</div>
-                <div class="skin-weapon">${item.weapon}</div>
-                <div class="skin-title">${item.name}</div>
-                <div class="skin-img-box">
-                    <img src="${img}" alt="${item.name}" style="max-width:100%; max-height:80px; object-fit:contain;">
-                </div>
-                <div class="skin-price">${item.price} R</div>
-                <button class="btn btn-warning" onclick="playCasino(${item.id})" style="margin-top:8px; background:#f59e0b; color:#000;">🎲 Поставить</button>
-            </div>
-        `;
-    }).join('');
-}
-
-
-    // Обновляем интерфейс (инвентарь и казико)
-    renderInventory();
-    renderCasinoInventory();
-    updateUI();
-};
-
-// Дополнительно: вызываем renderCasinoInventory при переключении на вкладку казика
-// Можно добавить в обработчик клика по вкладке
-document.querySelectorAll('.nav-btn').forEach(btn => {
-    btn.addEventListener('click', function() {
-        if (this.dataset.tab === 'casino') {
-            renderCasinoInventory();
-        }
-    });
-});
-
-// Также обновляем при загрузке страницы (если активна вкладка казико)
-document.addEventListener('DOMContentLoaded', function() {
-    // ... существующий код
-    // если активна вкладка casino (по умолчанию нет), но можно вызвать при переключении.
-});
-
-// ==========================================
-// РУЛЕТКА С МНОЖИТЕЛЯМИ
+// 13. РУЛЕТКА (НОВОЕ КАЗИНО)
 // ==========================================
 
 let selectedSkinForCasino = null;
 let isWheelSpinning = false;
+let wheelRotation = 0;
 
 // Сектора рулетки
 const WHEEL_SECTORS = [
-    { label: 'x0', multiplier: 0, color: '#ef4444' },
-    { label: 'x1', multiplier: 1, color: '#6b7280' },
-    { label: 'x0', multiplier: 0, color: '#ef4444' },
-    { label: 'x2', multiplier: 2, color: '#22c55e' },
-    { label: 'x0', multiplier: 0, color: '#ef4444' },
-    { label: 'x1', multiplier: 1, color: '#6b7280' },
-    { label: 'x0', multiplier: 0, color: '#ef4444' },
-    { label: 'x3', multiplier: 3, color: '#4b69ff' },
-    { label: 'x0', multiplier: 0, color: '#ef4444' },
-    { label: 'x5', multiplier: 5, color: '#d32ce6' },
-];
-
-// Отрисовка рулетки
-function drawWheel(highlightIndex = -1) {
-    const canvas = document.getElementById('wheelCanvas');
-    if (!canvas) return;
-    const ctx = canvas.getContext('2d');
-    const centerX = canvas.width / 2;
-    const centerY = canvas.height / 2;
-    const radius = Math.min(centerX, centerY) - 10;
-    const sliceAngle = (2 * Math.PI) / WHEEL_SECTORS.length;
-
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-    WHEEL_SECTORS.forEach((sector, i) => {
-        const startAngle = i * sliceAngle - Math.PI / 2;
-        const endAngle = startAngle + sliceAngle;
-
-        ctx.beginPath();
-        ctx.moveTo(centerX, centerY);
-        ctx.arc(centerX, centerY, radius, startAngle, endAngle);
-        ctx.closePath();
-
-        ctx.fillStyle = sector.color;
-        ctx.fill();
-
-        ctx.strokeStyle = '#ffffff';
-        ctx.lineWidth = 2;
-        ctx.stroke();
-
-        // Текст
-        const textAngle = startAngle + sliceAngle / 2;
-        const textX = centerX + Math.cos(textAngle) * (radius * 0.7);
-        const textY = centerY + Math.sin(textAngle) * (radius * 0.7);
-
-        ctx.fillStyle = '#ffffff';
-        ctx.font = 'bold 20px Arial';
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-        ctx.fillText(sector.label, textX, textY);
-    });
-
-    // Центральный круг
-    ctx.beginPath();
-    ctx.arc(centerX, centerY, 30, 0, 2 * Math.PI);
-    ctx.fillStyle = '#1a1d27';
-    ctx.fill();
-    ctx.strokeStyle = '#f59e0b';
-    ctx.lineWidth = 3;
-    ctx.stroke();
-
-    ctx.fillStyle = '#f59e0b';
-    ctx.font = 'bold 16px Arial';
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.fillText('🎰', centerX, centerY);
-
-    // Подсветка выигрышного сектора
-    if (highlightIndex >= 0 && highlightIndex < WHEEL_SECTORS.length) {
-        const startAngle = highlightIndex * sliceAngle - Math.PI / 2;
-        const endAngle = startAngle + sliceAngle;
-
-        ctx.beginPath();
-        ctx.moveTo(centerX, centerY);
-        ctx.arc(centerX, centerY, radius + 5, startAngle, endAngle);
-        ctx.closePath();
-        ctx.shadowColor = '#f59e0b';
-        ctx.shadowBlur = 30;
-        ctx.fillStyle = 'rgba(245, 158, 11, 0.3)';
-        ctx.fill();
-        ctx.shadowBlur = 0;
-    }
-}
-
-// Рендер скинов для рулетки
-function renderCasinoInventory() {
-    const container = document.getElementById('casino-inventory');
-    if (!container) return;
-    
-    const balanceEl = document.getElementById('casino-balance');
-    if (balanceEl) balanceEl.innerText = state.balance + ' R';
-    
-    const countEl = document.getElementById('casino-skin-count');
-    if (countEl) {
-        const total = state.inventory.reduce((sum, i) => sum + (i.count || 1), 0);
-        countEl.innerText = total;
-    }
-    
-    if (!state.inventory || state.inventory.length === 0) {
-        container.innerHTML = `
-            <div style="grid-column:1/-1; text-align:center; padding:40px; background:#1a1d27; border-radius:16px; border:2px dashed #2a2d3a;">
-                <div style="font-size:48px; margin-bottom:10px;">🎒</div>
-                <div style="color:#94a3b8; font-size:16px;">У вас нет скинов для ставок!</div>
-            </div>
-        `;
-        return;
-    }
-
-    container.innerHTML = state.inventory.map(item => {
-        const skin = SKINS_DATABASE.find(s => s.id === item.id);
-        const img = skin ? skin.img : item.img;
-        const price = skin ? skin.price : item.price;
-        const shortName = item.name.includes('|') ? item.name.split('|')[1].trim() : item.name;
-        const rarityColor = getRarityColor(item.rarity);
-        const isSelected = selectedSkinForCasino && selectedSkinForCasino.id === item.id;
-        
-        return `
-            <div class="casino-card rarity-${item.rarity} ${isSelected ? 'selected' : ''}" onclick="selectSkinForCasino(${item.id})">
-                <div class="card-rarity" style="background:${rarityColor};"></div>
-                ${item.count > 1 ? `<div class="skin-count-badge">x${item.count}</div>` : ''}
-                <div class="skin-weapon">${item.weapon}</div>
-                <div class="skin-title">${shortName}</div>
-                <div class="skin-img-box">
-                    <img src="${img}" alt="${item.name}" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22100%22 height=%22100%22%3E%3Crect width=%22100%22 height=%22100%22 fill=%22%231a1d27%22/%3E%3Ctext x=%2250%22 y=%2250%22 text-anchor=%22middle%22 dy=%22.3em%22 fill=%22%236b7280%22 font-size=%2212%22%3E${item.weapon}%3C/text%3E%3C/svg%3E';">
-                </div>
-                <div class="skin-price">${price} R</div>
-                <button class="select-btn" onclick="event.stopPropagation(); selectSkinForCasino(${item.id});">
-                    ${isSelected ? '✅ Выбран' : '🎯 Выбрать'}
-                </button>
-            </div>
-        `;
-    }).join('');
-}
-
-// Выбор скина для ставки
-window.selectSkinForCasino = function(skinId) {
-    const item = state.inventory.find(i => i.id === skinId);
-    if (!item || item.count < 1) {
-        showToast('❌ Этот скин недоступен!');
-        return;
-    }
-    selectedSkinForCasino = item;
-    renderCasinoInventory();
-    showToast(`✅ Выбран скин: ${item.name}`);
-};
-
-// Вращение рулетки
-window.spinWheel = function() {
-    if (isWheelSpinning) {
-        showToast('⏳ Рулетка уже крутится!');
-        return;
-    }
-
-    if (!selectedSkinForCasino) {
-        showToast('⚠️ Сначала выберите скин для ставки!');
-        return;
-    }
-
-    if (selectedSkinForCasino.count < 1) {
-        showToast('❌ У вас нет этого скина!');
-        selectedSkinForCasino = null;
-        renderCasinoInventory();
-        return;
-    }
-
-    isWheelSpinning = true;
-    const btn = document.getElementById('spin-wheel-btn');
-    if (btn) btn.disabled = true;
-
-    // Случайный выбор сектора
-    const resultIndex = Math.floor(Math.random() * WHEEL_SECTORS.length);
-    const resultSector = WHEEL_SECTORS[resultIndex];
-    
-    // Случайное количество оборотов (5-8)
-    const spins = 5 + Math.random() * 3;
-    const angle = spins * 360 + (resultIndex / WHEEL_SECTORS.length) * 360;
-    
-    // Анимация вращения
-    const canvas = document.getElementById('wheelCanvas');
-    const currentRotation = canvas.dataset.rotation || 0;
-    const newRotation = currentRotation + angle
-
-
-
-
-
-
-
-
-
+    { label: '0', multiplier: 0, color: '#ef4444' },
+   
