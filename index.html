@@ -261,7 +261,16 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 
 
-
+<!-- ВКЛАДКА: КАЗИК -->
+<section id="tab-casino" class="tab-content">
+    <h2 class="section-title">🎰 КАЗИК (Удвой или потеряй)</h2>
+    <p style="color:#8a99ad; margin-bottom:15px;">Поставьте свой скин на кон! При победе вы получите его в двойном размере, при проигрыше — потеряете.</p>
+    <div id="casino-inventory" class="inventory-grid"></div>
+    <div id="casino-result" style="display:none; margin-top:20px; padding:15px; background:#1a1d27; border-radius:8px; text-align:center; border:2px solid #4b69ff;">
+        <h3 id="casino-result-text"></h3>
+        <button class="btn" onclick="document.getElementById('casino-result').style.display='none';">Закрыть</button>
+    </div>
+</section>
 
 
     <script src="script.js"></script>
