@@ -1285,3 +1285,23 @@ document.addEventListener('DOMContentLoaded', function() {
     setTimeout(syncPricesOnLoad, 2000);
     updateAdminStatus();
 });
+
+
+// ==========================================
+// 7. КЕЙСЫ
+// ==========================================
+function renderCases() {
+    const container = document.getElementById('cases-grid');
+    if (!container) return;
+    container.innerHTML = CASES_DATABASE.map(c => `
+        <div class="case-card">
+            <div class="case-image-box">
+                <img src="${c.items[0]?.img || ''}" alt="${c.name}" style="max-height:100px; object-fit:contain;">
+            </div>
+            <h3>${c.name}</h3>
+            <div class="case-price">${c.price} R</div>
+            <p style="font-size:11px; color:#8a99ad; margin-bottom:15px;">Предметов: ${c.items.length}</p>
+            <button class="btn" onclick="openCaseModal('${c.id}')">ОТКРЫТЬ</button>
+        </div>
+    `).join('');
+}
