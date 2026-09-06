@@ -1285,6 +1285,45 @@ function updateUI() {
     renderRarityStats();
 }
 
+// Пример: когда игрок зарабатывает очки
+let balance = 115;
+
+function addPoints(points) {
+    balance += points;
+    // --- СОХРАНЯЕМ ДАННЫЕ ---
+    localStorage.setItem('userBalance', balance);
+    // ---
+    updateBalanceDisplay(); // обновляем интерфейс
+}
+
+// Пример: когда покупается скин
+function buySkin(skinId) {
+    // ... логика покупки
+    let ownedSkins = ['default']; // допустим, это массив
+    ownedSkins.push(skinId);
+    // --- СОХРАНЯЕМ ДАННЫЕ ---
+    localStorage.setItem('ownedSkins', JSON.stringify(ownedSkins));
+    // ---
+}
+
+// Выполняется при загрузке страницы
+window.addEventListener('DOMContentLoaded', (event) => {
+    // --- ЗАГРУЖАЕМ ДАННЫЕ ---
+    const savedBalance = localStorage.getItem('userBalance');
+    if (savedBalance !== null) {
+        balance = parseInt(savedBalance, 10);
+    }
+
+    const savedSkins = localStorage.getItem('ownedSkins');
+    if (savedSkins !== null) {
+        ownedSkins = JSON.parse(savedSkins);
+    }
+    // ---
+
+    updateBalanceDisplay(); // обновляем интерфейс с загруженными данными
+    updateSkinsDisplay();
+});
+
 
 
 
