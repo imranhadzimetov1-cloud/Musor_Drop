@@ -1374,93 +1374,70 @@ function renderCases() {
     `).join('');
 }
 
+
 // ==========================================
-// ГЕНЕРАТОР ПЕРЕЛИВАЮЩЕЙСЯ ТЕКСТУРЫ ДЛЯ XABIB
+// 1. ГЕНЕРАТОР ТЕКСТУР
 // ==========================================
-function generateXabibTexture() {
-    // Создаём SVG с анимированным градиентом
+function generateSkinTexture(weapon, skinName, rarity) {
+    const rarityColors = {
+        COMMON: { bg1: "#2a2e33", bg2: "#4a525d" },
+        RARE: { bg1: "#1e295d", bg2: "#3b82f6" },
+        EPIC: { bg1: "#3b1764", bg2: "#a855f7" },
+        LEGENDARY: { bg1: "#581c87", bg2: "#ec4899" },
+        SECRET: { bg1: "#7f1d1d", bg2: "#ef4444" }
+    };
+    const p = rarityColors[rarity] || rarityColors.COMMON;
     const svg = `
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100%" height="100%">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
         <defs>
-            <linearGradient id="xabibRainbow" x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" stop-color="#ff0000">
-                    <animate attributeName="stop-color" values="#ff0000;#ff8800;#ffff00;#00ff00;#0088ff;#8800ff;#ff0000" dur="3s" repeatCount="indefinite"/>
-                </stop>
-                <stop offset="33%" stop-color="#ff8800">
-                    <animate attributeName="stop-color" values="#ff8800;#ffff00;#00ff00;#0088ff;#8800ff;#ff0000;#ff8800" dur="3s" repeatCount="indefinite"/>
-                </stop>
-                <stop offset="66%" stop-color="#8800ff">
-                    <animate attributeName="stop-color" values="#8800ff;#ff0000;#ff8800;#ffff00;#00ff00;#0088ff;#8800ff" dur="3s" repeatCount="indefinite"/>
-                </stop>
-                <stop offset="100%" stop-color="#00ff00">
-                    <animate attributeName="stop-color" values="#00ff00;#0088ff;#8800ff;#ff0000;#ff8800;#ffff00;#00ff00" dur="3s" repeatCount="indefinite"/>
-                </stop>
+            <linearGradient id="g" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="${p.bg1}"/>
+                <stop offset="100%" stop-color="${p.bg2}"/>
             </linearGradient>
-            
-            <radialGradient id="xabibGlow" cx="50%" cy="50%" r="50%">
-                <stop offset="0%" stop-color="#ffffff" stop-opacity="0.3">
-                    <animate attributeName="stop-opacity" values="0.3;0.6;0.3" dur="1.5s" repeatCount="indefinite"/>
-                </stop>
-                <stop offset="100%" stop-color="#ffffff" stop-opacity="0"/>
-            </radialGradient>
-
-            <filter id="xabibGlowFilter">
-                <feGaussianBlur stdDeviation="2" result="blur"/>
-                <feMerge>
-                    <feMergeNode in="blur"/>
-                    <feMergeNode in="SourceGraphic"/>
-                </feMerge>
-            </filter>
         </defs>
-        
-        <!-- Переливающийся фон -->
-        <rect width="100" height="100" rx="12" fill="url(#xabibRainbow)" opacity="0.85"/>
-        
-        <!-- Сияние -->
-        <rect width="100" height="100" rx="12" fill="url(#xabibGlow)"/>
-        
-        <!-- Границы с переливанием -->
-        <rect x="2" y="2" width="96" height="96" rx="10" fill="none" stroke="url(#xabibRainbow)" stroke-width="2">
-            <animate attributeName="stroke-dasharray" values="0 300;300 0;0 300" dur="4s" repeatCount="indefinite"/>
-        </rect>
-        
-        <!-- Иконка Хабиба -->
-        <g transform="translate(25, 25) scale(0.5)" filter="url(#xabibGlowFilter)">
-            <!-- Силуэт бойца -->
-            <circle cx="50" cy="50" r="45" fill="none" stroke="#ffffff" stroke-width="3" opacity="0.8"/>
-            <text x="50" y="58" text-anchor="middle" font-size="40" font-weight="900" fill="#ffffff" opacity="0.95">🥊</text>
+        <rect width="100" height="100" rx="10" fill="url(#g)"/>
+        <g fill="#fff" opacity="0.8" transform="translate(15,25) scale(0.7)">
+            <path d="M5,25 L25,10 L75,10 L95,25 L85,35 L65,25 L35,25 L25,45 L10,40 Z"/>
         </g>
-        
-        <!-- Надпись XABIB -->
-        <text x="50" y="90" text-anchor="middle" font-size="14" font-weight="900" fill="#ffffff" letter-spacing="2" opacity="0.9">
-            XABIB
-            <animate attributeName="opacity" values="0.7;1;0.7" dur="2s" repeatCount="indefinite"/>
-        </text>
-        
-        <!-- Звездочки для блеска -->
-        <circle cx="15" cy="15" r="3" fill="#ffffff" opacity="0.6">
-            <animate attributeName="opacity" values="0.6;0;0.6" dur="1.5s" repeatCount="indefinite"/>
-        </circle>
-        <circle cx="85" cy="20" r="2" fill="#ffffff" opacity="0.4">
-            <animate attributeName="opacity" values="0.4;0;0.4" dur="2s" repeatCount="indefinite"/>
-        </circle>
-        <circle cx="10" cy="80" r="2" fill="#ffffff" opacity="0.5">
-            <animate attributeName="opacity" values="0.5;0;0.5" dur="1.8s" repeatCount="indefinite"/>
-        </circle>
-        <circle cx="88" cy="75" r="3" fill="#ffffff" opacity="0.6">
-            <animate attributeName="opacity" values="0.6;0;0.6" dur="2.2s" repeatCount="indefinite"/>
-        </circle>
-    </svg>`.replace(/\n/g, '').replace(/\s+/g, ' ');
-
+        <text x="50" y="85" text-anchor="middle" fill="#fff" opacity="0.4" font-size="8">${rarity}</text>
+    </svg>`.replace(/\n/g, '');
     return `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`;
 }
 
+// ==========================================
+// 2. ПЕРЕЛИВАЮЩИЙСЯ XABIB
+// ==========================================
+function generateXabibTexture() {
+    const svg = `
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+        <defs>
+            <linearGradient id="r" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#ff0000"><animate attributeName="stop-color" values="#ff0000;#ff8800;#ffff00;#00ff00;#0088ff;#8800ff;#ff0000" dur="3s" repeatCount="indefinite"/></stop>
+                <stop offset="50%" stop-color="#8800ff"><animate attributeName="stop-color" values="#8800ff;#ff0000;#ff8800;#ffff00;#00ff00;#0088ff;#8800ff" dur="3s" repeatCount="indefinite"/></stop>
+                <stop offset="100%" stop-color="#00ff00"><animate attributeName="stop-color" values="#00ff00;#0088ff;#8800ff;#ff0000;#ff8800;#ffff00;#00ff00" dur="3s" repeatCount="indefinite"/></stop>
+            </linearGradient>
+        </defs>
+        <rect width="100" height="100" rx="12" fill="url(#r)" opacity="0.85"/>
+        <g transform="translate(25,20) scale(0.6)">
+            <circle cx="50" cy="50" r="45" fill="none" stroke="#fff" stroke-width="3"/>
+            <text x="50" y="58" text-anchor="middle" font-size="40" fill="#fff">🥊</text>
+        </g>
+        <text x="50" y="90" text-anchor="middle" font-size="14" font-weight="900" fill="#fff" letter-spacing="2">XABIB</text>
+    </svg>`.replace(/\n/g, '');
+    return `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`;
+}
 
-{ 
-    id: 97, 
-    weapon: "★ Xabib", 
-    name: "★ Xabib | TikTok", 
-    rarity: "SECRET", 
-    price: 50000,
-    img: generateXabibTexture()  // ← СВОЯ ТЕКСТУРА С ПЕРЕЛИВАНИЕМ!
-},
+// ==========================================
+// 3. БАЗА СКИНОВ
+// ==========================================
+const SKINS_DATABASE = [
+    // ... все остальные скины ...
+    { id: 97, weapon: "★ Xabib", name: "★ Xabib | Nurmagomedov", rarity: "SECRET", price: 50000, img: generateXabibTexture() }
+];
+
+SKINS_DATABASE.forEach(skin => {
+    if (!skin.img) {
+        skin.img = generateSkinTexture(skin.weapon, skin.name, skin.rarity);
+    }
+    skin.oldPrice = skin.price;
+});
