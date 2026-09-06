@@ -1373,3 +1373,94 @@ function renderCases() {
         </div>
     `).join('');
 }
+
+// ==========================================
+// ГЕНЕРАТОР ПЕРЕЛИВАЮЩЕЙСЯ ТЕКСТУРЫ ДЛЯ XABIB
+// ==========================================
+function generateXabibTexture() {
+    // Создаём SVG с анимированным градиентом
+    const svg = `
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100%" height="100%">
+        <defs>
+            <linearGradient id="xabibRainbow" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#ff0000">
+                    <animate attributeName="stop-color" values="#ff0000;#ff8800;#ffff00;#00ff00;#0088ff;#8800ff;#ff0000" dur="3s" repeatCount="indefinite"/>
+                </stop>
+                <stop offset="33%" stop-color="#ff8800">
+                    <animate attributeName="stop-color" values="#ff8800;#ffff00;#00ff00;#0088ff;#8800ff;#ff0000;#ff8800" dur="3s" repeatCount="indefinite"/>
+                </stop>
+                <stop offset="66%" stop-color="#8800ff">
+                    <animate attributeName="stop-color" values="#8800ff;#ff0000;#ff8800;#ffff00;#00ff00;#0088ff;#8800ff" dur="3s" repeatCount="indefinite"/>
+                </stop>
+                <stop offset="100%" stop-color="#00ff00">
+                    <animate attributeName="stop-color" values="#00ff00;#0088ff;#8800ff;#ff0000;#ff8800;#ffff00;#00ff00" dur="3s" repeatCount="indefinite"/>
+                </stop>
+            </linearGradient>
+            
+            <radialGradient id="xabibGlow" cx="50%" cy="50%" r="50%">
+                <stop offset="0%" stop-color="#ffffff" stop-opacity="0.3">
+                    <animate attributeName="stop-opacity" values="0.3;0.6;0.3" dur="1.5s" repeatCount="indefinite"/>
+                </stop>
+                <stop offset="100%" stop-color="#ffffff" stop-opacity="0"/>
+            </radialGradient>
+
+            <filter id="xabibGlowFilter">
+                <feGaussianBlur stdDeviation="2" result="blur"/>
+                <feMerge>
+                    <feMergeNode in="blur"/>
+                    <feMergeNode in="SourceGraphic"/>
+                </feMerge>
+            </filter>
+        </defs>
+        
+        <!-- Переливающийся фон -->
+        <rect width="100" height="100" rx="12" fill="url(#xabibRainbow)" opacity="0.85"/>
+        
+        <!-- Сияние -->
+        <rect width="100" height="100" rx="12" fill="url(#xabibGlow)"/>
+        
+        <!-- Границы с переливанием -->
+        <rect x="2" y="2" width="96" height="96" rx="10" fill="none" stroke="url(#xabibRainbow)" stroke-width="2">
+            <animate attributeName="stroke-dasharray" values="0 300;300 0;0 300" dur="4s" repeatCount="indefinite"/>
+        </rect>
+        
+        <!-- Иконка Хабиба -->
+        <g transform="translate(25, 25) scale(0.5)" filter="url(#xabibGlowFilter)">
+            <!-- Силуэт бойца -->
+            <circle cx="50" cy="50" r="45" fill="none" stroke="#ffffff" stroke-width="3" opacity="0.8"/>
+            <text x="50" y="58" text-anchor="middle" font-size="40" font-weight="900" fill="#ffffff" opacity="0.95">🥊</text>
+        </g>
+        
+        <!-- Надпись XABIB -->
+        <text x="50" y="90" text-anchor="middle" font-size="14" font-weight="900" fill="#ffffff" letter-spacing="2" opacity="0.9">
+            XABIB
+            <animate attributeName="opacity" values="0.7;1;0.7" dur="2s" repeatCount="indefinite"/>
+        </text>
+        
+        <!-- Звездочки для блеска -->
+        <circle cx="15" cy="15" r="3" fill="#ffffff" opacity="0.6">
+            <animate attributeName="opacity" values="0.6;0;0.6" dur="1.5s" repeatCount="indefinite"/>
+        </circle>
+        <circle cx="85" cy="20" r="2" fill="#ffffff" opacity="0.4">
+            <animate attributeName="opacity" values="0.4;0;0.4" dur="2s" repeatCount="indefinite"/>
+        </circle>
+        <circle cx="10" cy="80" r="2" fill="#ffffff" opacity="0.5">
+            <animate attributeName="opacity" values="0.5;0;0.5" dur="1.8s" repeatCount="indefinite"/>
+        </circle>
+        <circle cx="88" cy="75" r="3" fill="#ffffff" opacity="0.6">
+            <animate attributeName="opacity" values="0.6;0;0.6" dur="2.2s" repeatCount="indefinite"/>
+        </circle>
+    </svg>`.replace(/\n/g, '').replace(/\s+/g, ' ');
+
+    return `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`;
+}
+
+
+{ 
+    id: 97, 
+    weapon: "★ Xabib", 
+    name: "★ Xabib | TikTok", 
+    rarity: "SECRET", 
+    price: 50000,
+    img: generateXabibTexture()  // ← СВОЯ ТЕКСТУРА С ПЕРЕЛИВАНИЕМ!
+},
