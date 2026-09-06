@@ -712,4 +712,607 @@ window.sendFriendRequest = function() {
 };
 
 window.removeFriend = function(friendId) {
-    if (!state.friends)
+    if (!state.friends) return;
+    state.friends = state.friends.filter(f => f.id !== friendId);
+    saveState();
+    renderFriends();
+    showToast("Удален из друзей");
+};
+
+function renderFriends() {
+    const container = document.getElementById('friends-list');
+    const countElem = document.getElementById('friends-count');
+    if (!container) return;
+
+    if (!state.friends) state.friends = [];
+    if (countElem) countElem.innerText = state.friends.length;
+
+    if (state.friends.length === 0) {
+        container.innerHTML = `<div style="color: #64748b; font-size: 13px; text-align: center; padding: 10px;">Нет друзей</div>`;
+        return;
+    }
+
+    container.innerHTML = state.friends.map(friend => `
+        <div style="display: flex; align-items: center; justify-content: space-between; background: #1e293b; padding: 10px; border-radius: 8px; border: 1px solid #334155;">
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <div style="position: relative; width: 36px; height: 36px;">
+                    <img src="${friend.avatar}" style="width: 100%; height: 100%; border-radius: 50%; background: #0f172a;">
+                    <span style="position: absolute; bottom: 0; right: 0; width: 10px; height: 10px; border-radius: 50%; background: ${friend.status === 'online' ? '#22c55e' : '#64748b'}; border: 2px solid #1e293b;"></span>
+                </div>
+                <div>
+                    <div style="font-size: 13px; font-weight: bold; color: white;">${friend.name}</div>
+                    <div style="font-size: 11px; color: #94a3b8;">ID: ${friend.id}</div>
+                </div>
+            </div>
+            <button onclick="removeFriend('${friend.id}')" style="background: rgba(239, 68, 68, 0.15); color: #ef4444; border: 1px solid #ef4444; border-radius: 6px; padding: 4px 8px; font-size: 11px; cursor: pointer;">Удалить</button>
+        </div>
+    `).join('');
+}
+
+// ==========================================
+// 13. АДМИН-ПАНЕЛЬ
+// ==========================================
+const ADMIN_PASSWORD = "TikTok";
+
+function showAdminNotice(text) {
+    const toast = document.getElementById('admin-toast');
+    if (!toast) return;
+    toast.textContent = text;
+    toast.classList.add('show');
+    clearTimeout(window.adminToastTimeout);
+    window.adminToastTimeout = setTimeout(() => toast.classList.remove('show'), 3000);
+}
+
+function populateAdminDropdowns() {
+    const giveSelect = document.getElementById('admin-give-skin-select');
+    const marketSelect = document.getElementById('admin-market-skin-select');
+
+    if (SKINS_DATABASE && SKINS_DATABASE.length > 0) {
+        const options = SKINS_DATABASE.map(s => `<option value="${s.id}">${s.name} (${s.price} R)</option>`).join('');
+        if (giveSelect) giveSelect.innerHTML = options;
+        if (marketSelect) marketSelect.innerHTML = options;
+    }
+}
+
+window.loginAdmin = function() {
+    const input = document.getElementById('admin-login-pass');
+    if (!input) return;
+
+    if (input.value === ADMIN_PASSWORD) {
+        const panel = document.getElementById('admin-panel');
+        if (panel) panel.style.display = 'block';
+        sessionStorage.setItem('isAdminLoggedIn', 'true');
+        populateAdminDropdowns();
+        showAdminNotice("Доступ открыт!");
+    } else {
+        showAdminNotice("Неверный пароль!");
+    }
+};
+
+window.switchAdminTab = function(tabName) {
+    const tabs = document.querySelectorAll('.tab-btn');
+    const contents = document.querySelectorAll('.admin-tab-content');
+
+    tabs.forEach(btn => btn.classList.remove('active'));
+    contents.forEach(content => content.classList.remove('active'));
+
+    if (window.event && window.event.target) {
+        window.event.target.classList.add('active');
+    }
+
+    const activeContent = document.getElementById(`tab-${tabName}`);
+    if (activeContent) {
+        activeContent.classList.add('active');
+    }
+};
+
+window.adminAddMoney = function() {
+    const amount = Number(document.getElementById('admin-money-amount')?.value) || 0;
+    state.balance = (state.balance || 0) + amount;
+    saveState();
+    showAdminNotice(`+${amount} R`);
+};
+
+window.adminSetMoney = function() {
+    const amount = Number(document.getElementById('admin-money-amount')?.value) || 0;
+    state.balance = amount;
+    saveState();
+    showAdminNotice(`Баланс: ${amount} R`);
+};
+
+window.adminResetMoney = function() {
+    state.balance = 0;
+    saveState();
+    showAdminNotice("Баланс сброшен");
+};
+
+window.adminGiveSkin = function() {
+    const skinId = Number(document.getElementById('admin-give-skin-select')?.value);
+    if (!skinId) return;
+    const skin = SKINS_DATABASE.find(s => s.id === skinId);
+    if (!skin) return;
+    addItemToInventory(skin);
+    showAdminNotice(`Выдан: ${skin.name}`);
+};
+
+window.adminBanPlayer = function() {
+    const targetId = document.getElementById('admin-target-id')?.value.trim();
+    if (!targetId) return showAdminNotice("Введите ID!");
+    if (!state.bannedIds) state.bannedIds = [];
+    if (!state.bannedIds.includes(targetId)) state.bannedIds.push(targetId);
+    saveState();
+    showAdminNotice(`Игрок ${targetId} забанен!`);
+};
+
+window.adminUnbanPlayer = function() {
+    const targetId = document.getElementById('admin-target-id')?.value.trim();
+    if (state.bannedIds) {
+        state.bannedIds = state.bannedIds.filter(id => id !== targetId);
+        saveState();
+    }
+    showAdminNotice(`Игрок ${targetId} разбанен`);
+};
+
+window.adminUpdateMarketPrice = function() {
+    const id = Number(document.getElementById('admin-market-skin-select')?.value);
+    const price = Number(document.getElementById('admin-market-price-input')?.value);
+    const skin = SKINS_DATABASE.find(s => s.id === id);
+    if (skin && price > 0) {
+        skin.oldPrice = skin.price;
+        skin.price = price;
+        renderShop();
+        populateAdminDropdowns();
+        showAdminNotice(`Цена: ${price} R`);
+    }
+};
+
+window.adminPumpAll = function(percent) {
+    SKINS_DATABASE.forEach(s => {
+        s.oldPrice = s.price;
+        s.price = Math.round(s.price * (1 + percent / 100));
+    });
+    saveState();
+    renderShop();
+    showAdminNotice(`+${percent}%`);
+};
+
+window.adminDumpAll = function(percent) {
+    SKINS_DATABASE.forEach(s => {
+        s.oldPrice = s.price;
+        s.price = Math.max(1, Math.round(s.price * (1 - percent / 100)));
+    });
+    saveState();
+    renderShop();
+    showAdminNotice(`-${percent}%`);
+};
+
+window.logoutAdmin = function() {
+    sessionStorage.removeItem('isAdminLoggedIn');
+    const panel = document.getElementById('admin-panel');
+    if (panel) panel.style.display = 'none';
+    showAdminNotice("Выход из админки");
+};
+
+// ==========================================
+// 14. РУЛЕТКА (КАЗИНО)
+// ==========================================
+
+let selectedSkinForCasino = null;
+let isWheelSpinning = false;
+let currentRotation = 0;
+
+const WHEEL_SECTORS = [
+    { label: '0x', multiplier: 0, color: '#ef4444' },
+    { label: '1x', multiplier: 1, color: '#6b7280' },
+    { label: '0x', multiplier: 0, color: '#ef4444' },
+    { label: '2x', multiplier: 2, color: '#22c55e' },
+    { label: '0x', multiplier: 0, color: '#ef4444' },
+    { label: '1x', multiplier: 1, color: '#6b7280' },
+    { label: '0x', multiplier: 0, color: '#ef4444' },
+    { label: '3x', multiplier: 3, color: '#4b69ff' },
+    { label: '0x', multiplier: 0, color: '#ef4444' },
+    { label: '5x', multiplier: 5, color: '#d32ce6' }
+];
+
+function drawWheel() {
+    const canvas = document.getElementById('wheelCanvas');
+    if (!canvas) return;
+    
+    const ctx = canvas.getContext('2d');
+    const w = canvas.width;
+    const h = canvas.height;
+    const cx = w / 2;
+    const cy = h / 2;
+    const r = Math.min(w, h) / 2 - 10;
+    const count = WHEEL_SECTORS.length;
+    const slice = (2 * Math.PI) / count;
+
+    ctx.clearRect(0, 0, w, h);
+
+    for (let i = 0; i < count; i++) {
+        const start = i * slice + currentRotation;
+        const end = start + slice;
+        
+        ctx.beginPath();
+        ctx.moveTo(cx, cy);
+        ctx.arc(cx, cy, r, start, end);
+        ctx.closePath();
+        
+        ctx.fillStyle = WHEEL_SECTORS[i].color;
+        ctx.fill();
+        ctx.strokeStyle = '#fff';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+
+        const mid = start + slice / 2;
+        const tx = cx + Math.cos(mid) * r * 0.65;
+        const ty = cy + Math.sin(mid) * r * 0.65;
+        ctx.fillStyle = '#fff';
+        ctx.font = 'bold 18px Arial';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(WHEEL_SECTORS[i].label, tx, ty);
+    }
+
+    // Центр
+    ctx.beginPath();
+    ctx.arc(cx, cy, 25, 0, 2 * Math.PI);
+    ctx.fillStyle = '#1a1d27';
+    ctx.fill();
+    ctx.strokeStyle = '#f59e0b';
+    ctx.lineWidth = 3;
+    ctx.stroke();
+    ctx.fillStyle = '#f59e0b';
+    ctx.font = '18px Arial';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('🎰', cx, cy);
+}
+
+function renderCasinoInventory() {
+    const container = document.getElementById('casino-inventory');
+    if (!container) return;
+    
+    const balanceEl = document.getElementById('casino-balance');
+    if (balanceEl) balanceEl.innerText = state.balance + ' R';
+    
+    const countEl = document.getElementById('casino-skin-count');
+    if (countEl) {
+        const total = state.inventory.reduce((sum, i) => sum + (i.count || 1), 0);
+        countEl.innerText = total;
+    }
+    
+    if (!state.inventory || state.inventory.length === 0) {
+        container.innerHTML = `<div style="grid-column:1/-1; text-align:center; padding:30px; background:#1a1d27; border-radius:16px; border:2px dashed #2a2d3a; color:#94a3b8;">Нет скинов для ставок</div>`;
+        return;
+    }
+
+    container.innerHTML = state.inventory.map(item => {
+        const skin = SKINS_DATABASE.find(s => s.id === item.id);
+        const img = skin ? skin.img : item.img;
+        const price = skin ? skin.price : item.price;
+        const weapon = item.weapon ? item.weapon.replace('★', '').trim() : 'Скин';
+        let shortName = item.name;
+        if (item.name && item.name.includes('|')) {
+            shortName = item.name.split('|')[1].trim();
+        }
+        if (!shortName || shortName.length < 2) {
+            shortName = item.name || weapon;
+        }
+        const isSelected = selectedSkinForCasino && selectedSkinForCasino.id === item.id;
+        const rarityColor = getRarityColor(item.rarity);
+        
+        return `
+            <div class="casino-card rarity-${item.rarity} ${isSelected ? 'selected' : ''}" onclick="selectSkinForCasino(${item.id})" style="background: linear-gradient(145deg, #1a1d27, #13151e); border-radius:14px; padding:12px 8px; text-align:center; border:2px solid ${isSelected ? '#f59e0b' : '#2a2d3a'}; position:relative; cursor:pointer; transition:all 0.3s;">
+                <div style="height:4px; border-radius:4px 4px 0 0; background:${rarityColor}; position:absolute; top:0; left:0; right:0;"></div>
+                ${item.count > 1 ? `<div style="position:absolute; top:6px; right:6px; background:#f59e0b; color:#000; font-size:11px; font-weight:800; padding:1px 8px; border-radius:20px;">x${item.count}</div>` : ''}
+                <div style="font-size:11px; color:#8a99ad; margin-top:6px;">${weapon}</div>
+                <div style="font-size:13px; font-weight:700; margin:2px 0; color:#fff;">${shortName}</div>
+                <div style="height:60px; display:flex; align-items:center; justify-content:center; margin:4px 0;">
+                    <img src="${img}" style="max-height:55px; max-width:100%; object-fit:contain;" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22100%22 height=%22100%22%3E%3Crect width=%22100%22 height=%22100%22 fill=%22%231a1d27%22/%3E%3Ctext x=%2250%22 y=%2250%22 text-anchor=%22middle%22 dy=%22.3em%22 fill=%22%236b7280%22 font-size=%2212%22%3E${weapon}%3C/text%3E%3C/svg%3E';">
+                </div>
+                <div style="font-size:14px; font-weight:800; color:#f59e0b; margin:2px 0;">${price} R</div>
+                <button class="select-btn" onclick="event.stopPropagation(); selectSkinForCasino(${item.id});" style="background:${isSelected ? 'linear-gradient(135deg, #f59e0b, #d97706)' : '#2a2d3a'}; color:${isSelected ? '#000' : '#94a3b8'}; border:none; padding:6px 12px; border-radius:8px; font-size:11px; font-weight:700; cursor:pointer; width:100%; margin-top:4px;">
+                    ${isSelected ? '✅ Выбран' : '🎯 Выбрать'}
+                </button>
+            </div>
+        `;
+    }).join('');
+}
+
+window.selectSkinForCasino = function(skinId) {
+    const item = state.inventory.find(i => i.id === skinId);
+    if (!item || item.count < 1) {
+        showToast('❌ Скин недоступен!');
+        return;
+    }
+    selectedSkinForCasino = item;
+    renderCasinoInventory();
+    showToast(`✅ Выбран: ${item.name}`);
+};
+
+// ==========================================
+// ВРАЩЕНИЕ РУЛЕТКИ
+// ==========================================
+window.spinWheel = function() {
+    if (isWheelSpinning) {
+        showToast('⏳ Рулетка уже крутится!');
+        return;
+    }
+
+    if (!selectedSkinForCasino) {
+        showToast('⚠️ Сначала выберите скин!');
+        return;
+    }
+
+    if (selectedSkinForCasino.count < 1) {
+        showToast('❌ Нет скина!');
+        selectedSkinForCasino = null;
+        renderCasinoInventory();
+        return;
+    }
+
+    isWheelSpinning = true;
+    const btn = document.getElementById('spin-wheel-btn');
+    if (btn) btn.disabled = true;
+
+    // Выбираем случайный сектор (0-9)
+    const resultIndex = Math.floor(Math.random() * WHEEL_SECTORS.length);
+    const resultSector = WHEEL_SECTORS[resultIndex];
+    
+    console.log('🎯 ВЫПАЛ СЕКТОР:', resultIndex, resultSector.label);
+
+    // Рассчитываем угол: сектор должен оказаться вверху (под стрелкой)
+    const slice = (2 * Math.PI) / WHEEL_SECTORS.length;
+    // Нужно чтобы центр сектора оказался в точке 0 (вверху)
+    const targetAngle = -(resultIndex * slice + slice / 2) + Math.PI / 2;
+    const spins = 8 + Math.random() * 4;
+    const totalAngle = spins * 2 * Math.PI + targetAngle;
+
+    const duration = 5000;
+    const startTime = Date.now();
+    const startRot = currentRotation;
+    const endRot = startRot + totalAngle;
+
+    function animate() {
+        const elapsed = Date.now() - startTime;
+        const progress = Math.min(elapsed / duration, 1);
+        const eased = 1 - Math.pow(1 - progress, 3);
+        currentRotation = startRot + totalAngle * eased;
+        drawWheel();
+        if (progress < 1) {
+            requestAnimationFrame(animate);
+        } else {
+            currentRotation = endRot;
+            drawWheel();
+            // Показываем результат
+            setTimeout(() => {
+                processCasinoResult(resultIndex);
+            }, 300);
+        }
+    }
+
+    animate();
+};
+
+function processCasinoResult(resultIndex) {
+    const sector = WHEEL_SECTORS[resultIndex];
+    const multiplier = sector.multiplier;
+    const win = multiplier > 0;
+
+    console.log('📊 РЕЗУЛЬТАТ:', sector.label, 'x' + multiplier);
+
+    const itemIndex = state.inventory.findIndex(i => i.id === selectedSkinForCasino.id);
+    if (itemIndex === -1) {
+        showToast('❌ Ошибка!');
+        isWheelSpinning = false;
+        if (document.getElementById('spin-wheel-btn')) {
+            document.getElementById('spin-wheel-btn').disabled = false;
+        }
+        return;
+    }
+
+    const item = state.inventory[itemIndex];
+    let resultText = '';
+    let detailText = '';
+    let icon = '';
+
+    if (win) {
+        const addCount = multiplier;
+        item.count += addCount;
+        resultText = `🎉 ПОБЕДА! x${multiplier}`;
+        detailText = `+${addCount} ${item.name}!<br>Теперь x${item.count}`;
+        icon = '🏆';
+        showToast(`✅ +${addCount} ${item.name}!`);
+    } else {
+        if (item.count > 1) {
+            item.count -= 1;
+            resultText = `😞 ПРОИГРЫШ! 0x`;
+            detailText = `Потерян ${item.name}.<br>Осталось x${item.count}`;
+        } else {
+            state.inventory.splice(itemIndex, 1);
+            resultText = `💀 ПРОИГРЫШ! 0x`;
+            detailText = `${item.name} полностью потерян!`;
+        }
+        icon = '💀';
+        showToast(`❌ Потерян ${item.name}`);
+    }
+
+    const resultDiv = document.getElementById('casino-result');
+    const resultTextEl = document.getElementById('casino-result-text');
+    const resultDetailEl = document.getElementById('casino-result-detail');
+    const resultIconEl = document.getElementById('casino-result-icon');
+    
+    if (resultDiv && resultTextEl && resultDetailEl && resultIconEl) {
+        resultDiv.style.display = 'block';
+        resultDiv.style.borderColor = win ? '#22c55e' : '#ef4444';
+        resultDiv.style.boxShadow = win ? '0 0 40px rgba(34,197,94,0.3)' : '0 0 40px rgba(239,68,68,0.3)';
+        resultIconEl.textContent = icon;
+        resultTextEl.innerHTML = resultText;
+        resultTextEl.style.color = win ? '#22c55e' : '#ef4444';
+        resultDetailEl.innerHTML = detailText;
+    }
+
+    saveState();
+    renderInventory();
+    renderCasinoInventory();
+    updateUI();
+
+    isWheelSpinning = false;
+    selectedSkinForCasino = null;
+    if (document.getElementById('spin-wheel-btn')) {
+        document.getElementById('spin-wheel-btn').disabled = false;
+    }
+}
+
+// ==========================================
+// 15. ИНИЦИАЛИЗАЦИЯ
+// ==========================================
+document.addEventListener('DOMContentLoaded', () => {
+    loadState();
+    renderCases();
+    renderShop();
+    renderLiveDrops();
+    renderFriends();
+    initPlayerId();
+    populateAdminDropdowns();
+    renderCasinoInventory();
+    drawWheel();
+    
+    if (sessionStorage.getItem('isAdminLoggedIn') === 'true') {
+        const panel = document.getElementById('admin-panel');
+        if (panel) panel.style.display = 'block';
+    }
+});
+
+// ==========================================
+// 16. СИНХРОНИЗАЦИЯ ЦЕН
+// ==========================================
+const GITHUB_CONFIG = {
+    owner: 'imranhadzimetov1-cloud',
+    repo: 'Musor_Drop',
+    path: 'market_prices.json'
+};
+
+function adminLogin() {
+    const token = prompt('🔑 Введите GitHub токен:');
+    if (!token) return;
+    if (token.startsWith('ghp_')) {
+        localStorage.setItem('github_admin_token', token);
+        alert('✅ Токен сохранен!');
+        showToast('✅ Вы вошли как администратор!');
+        updateAdminStatus();
+    } else {
+        alert('❌ Токен должен начинаться с "ghp_"');
+    }
+}
+
+function adminLogout() {
+    localStorage.removeItem('github_admin_token');
+    updateAdminStatus();
+    showToast('✅ Вы вышли из администратора');
+}
+
+function isAdminLoggedIn() {
+    return !!localStorage.getItem('github_admin_token');
+}
+
+function updateAdminStatus() {
+    const el = document.getElementById('admin-status');
+    if (el) {
+        if (isAdminLoggedIn()) {
+            el.innerHTML = '✅ Админ: Вход выполнен';
+            el.style.color = '#22c55e';
+        } else {
+            el.innerHTML = '❌ Админ: Не авторизован';
+            el.style.color = '#ef4444';
+        }
+    }
+}
+
+async function savePricesToGitHub() {
+    const token = localStorage.getItem('github_admin_token');
+    if (!token) {
+        showToast('⚠️ Войдите как администратор!');
+        return;
+    }
+    
+    try {
+        showToast('⏳ Сохранение...');
+        const prices = {};
+        SKINS_DATABASE.forEach(skin => { prices[skin.id] = skin.price; });
+        const marketData = { lastUpdate: Date.now(), updatedBy: state.userName || 'Admin', prices: prices };
+        
+        const url = `https://api.github.com/repos/${GITHUB_CONFIG.owner}/${GITHUB_CONFIG.repo}/contents/${GITHUB_CONFIG.path}`;
+        let sha = null;
+        const getResponse = await fetch(url, {
+            headers: { 'Authorization': `token ${token}`, 'Accept': 'application/vnd.github.v3+json' }
+        });
+        if (getResponse.ok) { const data = await getResponse.json(); sha = data.sha; }
+        
+        const content = btoa(unescape(encodeURIComponent(JSON.stringify(marketData, null, 2))));
+        const putResponse = await fetch(url, {
+            method: 'PUT',
+            headers: { 'Authorization': `token ${token}`, 'Accept': 'application/vnd.github.v3+json', 'Content-Type': 'application/json' },
+            body: JSON.stringify({ message: `🔄 Обновление цен (${new Date().toLocaleString()})`, content: content, sha: sha })
+        });
+        if (putResponse.ok) { showToast('✅ Цены синхронизированы!'); } 
+        else { const error = await putResponse.json(); showToast('❌ Ошибка: ' + (error.message || 'Неизвестная ошибка')); }
+    } catch (error) { console.error(error); showToast('❌ Ошибка синхронизации!'); }
+}
+
+async function loadPricesFromGitHub() {
+    try {
+        const url = `https://api.github.com/repos/${GITHUB_CONFIG.owner}/${GITHUB_CONFIG.repo}/contents/${GITHUB_CONFIG.path}`;
+        const response = await fetch(url, { headers: { 'Accept': 'application/vnd.github.v3+json' } });
+        if (!response.ok) { if (response.status === 404) return false; return false; }
+        const data = await response.json();
+        const content = decodeURIComponent(escape(atob(data.content)));
+        const marketData = JSON.parse(content);
+        if (marketData.prices) {
+            SKINS_DATABASE.forEach(skin => {
+                if (marketData.prices[skin.id] !== undefined) {
+                    skin.oldPrice = skin.price;
+                    skin.price = marketData.prices[skin.id];
+                }
+            });
+            renderShop();
+            renderInventory();
+            saveState();
+            return true;
+        }
+        return false;
+    } catch (error) { console.error(error); return false; }
+}
+
+window.adminPumpAllWithSync = async function(percent) {
+    if (!isAdminLoggedIn()) {
+        showToast('⚠️ Войдите как администратор!');
+        if (confirm('Войти как администратор?')) { adminLogin(); }
+        return;
+    }
+    SKINS_DATABASE.forEach(s => { s.oldPrice = s.price; s.price = Math.round(s.price * (1 + percent / 100)); });
+    renderShop();
+    renderInventory();
+    saveState();
+    await savePricesToGitHub();
+    showToast(`✅ ${percent > 0 ? 'Повышены' : 'Понижены'} на ${Math.abs(percent)}%`);
+};
+
+window.adminDumpAllWithSync = async function(percent) {
+    await adminPumpAllWithSync(-percent);
+};
+
+async function syncPricesOnLoad() {
+    const lastSync = parseInt(localStorage.getItem('lastPriceSync')) || 0;
+    const now = Date.now();
+    if (now - lastSync > 300000) {
+        await loadPricesFromGitHub();
+        localStorage.setItem('lastPriceSync', String(now));
+    }
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    setTimeout(syncPricesOnLoad, 2000);
+    updateAdminStatus();
+});
