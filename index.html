@@ -69,44 +69,47 @@
             <div class="inventory-grid" id="inventory-grid"></div>
         </section>
 
-        <!-- ВКЛАДКА: РУЛЕТКА -->
-        <section id="tab-casino" class="tab-content">
-            <h2 class="section-title">🎰 РУЛЕТКА (Умножай скины)</h2>
+        <!-- ВКЛАДКА: САПЁР (ВМЕСТО РУЛЕТКИ) -->
+<section id="tab-casino" class="tab-content">
+    <h2 class="section-title">💣 САПЁР (Умножай скины)</h2>
 
-            <div style="background: linear-gradient(135deg, #1a1a2e, #16213e); border-radius: 16px; padding: 20px; margin-bottom: 20px; border: 1px solid #f59e0b;">
-                <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
-                    <div>
-                        <div style="font-size: 14px; color: #94a3b8;">💰 Твой баланс</div>
-                        <div style="font-size: 28px; font-weight: 800; color: #f59e0b;" id="casino-balance">0 R</div>
-                    </div>
-                    <div style="text-align: right;">
-                        <div style="font-size: 14px; color: #94a3b8;">🎯 Секторов</div>
-                        <div style="font-size: 24px; font-weight: 800; color: #4b69ff;">10</div>
-                    </div>
-                    <div style="text-align: right;">
-                        <div style="font-size: 14px; color: #94a3b8;">📦 Скинов в инвентаре</div>
-                        <div style="font-size: 24px; font-weight: 800; color: #4b69ff;" id="casino-skin-count">0</div>
-                    </div>
-                </div>
+    <div style="background: linear-gradient(135deg, #1a1a2e, #16213e); border-radius: 16px; padding: 20px; margin-bottom: 20px; border: 1px solid #f59e0b;">
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+            <div>
+                <div style="font-size: 14px; color: #94a3b8;">💰 Твой баланс</div>
+                <div style="font-size: 28px; font-weight: 800; color: #f59e0b;" id="casino-balance">0 R</div>
             </div>
-
-            <!-- РУЛЕТКА -->
-            <div style="text-align: center; margin: 20px 0;">
-                <div id="wheel-container" style="position: relative; display: inline-block; max-width: 400px; width: 100%;">
-                    <canvas id="wheelCanvas" width="400" height="400" style="width: 100%; height: auto; border-radius: 50%; box-shadow: 0 0 40px rgba(245, 158, 11, 0.2);"></canvas>
-                    <div id="wheel-pointer" style="position: absolute; top: -10px; left: 50%; transform: translateX(-50%); font-size: 35px; z-index: 10; filter: drop-shadow(0 0 10px rgba(255,0,0,0.8));">▼</div>
-                </div>
-                <div style="margin-top: 15px;">
-                    <button class="btn" id="spin-wheel-btn" onclick="spinWheel()" style="background: linear-gradient(135deg, #f59e0b, #d97706); color: #000; font-weight: 800; font-size: 18px; padding: 12px 40px; width: auto; border-radius: 12px;">
-                        🎡 КРУТИТЬ!
-                    </button>
-                </div>
+            <div style="text-align: right;">
+                <div style="font-size: 14px; color: #94a3b8;">🎯 Множители</div>
+                <div style="font-size: 18px; font-weight: 800; color: #4b69ff;">0x(3) 2x(2) 3x(2) 5x(1) 10x(1)</div>
             </div>
+            <div style="text-align: right;">
+                <div style="font-size: 14px; color: #94a3b8;">📦 Скинов в инвентаре</div>
+                <div style="font-size: 24px; font-weight: 800; color: #4b69ff;" id="casino-skin-count">0</div>
+            </div>
+        </div>
+    </div>
 
-            <p style="color:#8a99ad; margin-bottom:15px; font-size:14px; text-align:center;">
-                ⚡ Выберите скин для ставки, затем нажмите <strong style="color:#f59e0b;">"КРУТИТЬ!"</strong>
-            </p>
+    <!-- ИГРА -->
+    <div style="text-align: center; margin: 20px 0;">
+        <div style="font-size: 16px; color: #94a3b8; margin-bottom: 10px;" id="game-status">Выберите скин и нажмите на квадрат</div>
+        <div id="sapper-grid" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; max-width: 400px; margin: 0 auto;">
+            <!-- 9 квадратов будут созданы JS -->
+        </div>
+        <div style="margin-top: 15px;">
+            <button class="btn" onclick="resetSapperGame()" style="background: linear-gradient(135deg, #f59e0b, #d97706); color: #000; font-weight: 800; font-size: 16px; padding: 10px 30px; width: auto; border-radius: 12px;">
+                🔄 Новая игра
+            </button>
+        </div>
+    </div>
 
+    <p style="color:#8a99ad; margin-bottom:15px; font-size:14px; text-align:center;">
+        ⚡ Выберите скин, затем нажмите на <strong style="color:#f59e0b;">квадрат</strong> чтобы открыть множитель!
+    </p>
+
+    <!-- СКИНЫ ДЛЯ СТАВКИ -->
+    <div id="casino-inventory" class="casino-grid"></div>
+</section>
             <!-- СКИНЫ ДЛЯ СТАВКИ -->
             <div id="casino-inventory" class="casino-grid"></div>
 
