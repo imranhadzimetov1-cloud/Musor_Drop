@@ -939,3 +939,327 @@ document.addEventListener('DOMContentLoaded', () => {
         <span id="bet-max-display" style="margin-left: 12px;"></span>
     </div>
 </div>
+// ==========================================
+// 18. САПЁР (С ВЫБОРОМ КОЛИЧЕСТВА СКИНОВ)
+// ==========================================
+
+const SAPPER_MULTIPLIERS = [0, 0, 0, 2, 2, 3, 3, 5, 10];
+let sapperGame = {
+    selectedSkin: null,
+    betAmount: 1,
+    grid: [],
+    revealed: [],
+    isGameOver: false
+};
+
+function shuffleArray(arr) {
+    for (let i = arr.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr;
+}
+
+function initSapperGame() {
+    const shuffled = shuffleArray([...SAPPER_MULTIPLIERS]);
+    sapperGame.grid = shuffled;
+    sapperGame.revealed = new Array(9).fill(false);
+    sapperGame.isGameOver = false;
+    sapperGame.selectedSkin = null;
+    sapperGame.betAmount = 1;
+    renderSapperGrid();
+    document.getElementById('bet-amount-container').style.display = 'none';
+    const status = document.getElementById('game-status');
+    if (status) {
+        status.textContent = 'Выберите скин и количество для ставки';
+        status.style.color = '#94a3b8';
+    }
+    updateBetDisplay();
+}
+
+function renderSapperGrid() {
+    const container = document.getElementById('sapper-grid');
+    if (!container) {
+        console.warn('⚠️ sapper-grid не найден!');
+        return;
+    }
+    
+    if (!sapperGame.grid || sapperGame.grid.length === 0) {
+        container.innerHTML = '<div style="grid-column:1/-1; text-align:center; color:#ef4444; padding:20px;">Ошибка! Перезагрузите страницу.</div>';
+        return;
+    }
+
+    container.innerHTML = sapperGame.grid.map((value, index) => {
+        const isRevealed = sapperGame.revealed[index];
+        let content = '';
+        let bgColor = '#1a1d27';
+        let textColor = '#fff';
+
+        if (isRevealed) {
+            if (value === 0) {
+                content = '💀';
+                bgColor = '#ef4444';
+            } else {
+                content = `x${value}`;
+                bgColor = '#22c55e';
+            }
+        } else {
+            content = '❓';
+            bgColor = '#1a1d27';
+            textColor = '#f59e0b';
+        }
+
+        return `
+            <div onclick="sapperClick(${index})" style="
+                aspect-ratio: 1/1;
+                background: ${bgColor};
+                border: 2px solid ${isRevealed ? (value === 0 ? '#ef4444' : '#22c55e') : '#2a2d3a'};
+                border-radius: 12px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 28px;
+                font-weight: 900;
+                color: ${textColor};
+                cursor: ${sapperGame.isGameOver || !sapperGame.selectedSkin ? 'not-allowed' : 'pointer'};
+                transition: all 0.3s ease;
+                opacity: ${isRevealed ? 1 : 0.9};
+                user-select: none;
+                min-height: 80px;
+            ">
+                ${content}
+            </div>
+        `;
+    }).join('');
+}
+
+// УСТАНОВКА КОЛИЧЕСТВА СКИНОВ
+function setBetAmount(amount) {
+    if (!sapperGame.selectedSkin) {
+        showToast('⚠️ Сначала выберите скин!');
+        return;
+    }
+    const maxAvailable = sapperGame.selectedSkin.count || 0;
+    if (amount > maxAvailable) {
+        showToast(`⚠️ У вас только ${maxAvailable} скинов!`);
+        amount = maxAvailable;
+    }
+    if (amount < 1) {
+        showToast('❌ Минимум 1 скин!');
+        return;
+    }
+    sapperGame.betAmount = amount;
+    document.getElementById('custom-bet-amount').value = amount;
+    updateBetDisplay();
+    showToast(`✅ Ставка: ${amount} ${sapperGame.selectedSkin.name}`);
+}
+
+function applyCustomBet() {
+    const input = document.getElementById('custom-bet-amount');
+    if (!input) return;
+    let amount = parseInt(input.value) || 1;
+    if (amount < 1) amount = 1;
+    const maxAvailable = sapperGame.selectedSkin ? sapperGame.selectedSkin.count : 0;
+    if (maxAvailable > 0 && amount > maxAvailable) {
+        amount = maxAvailable;
+        showToast(`⚠️ Максимум ${maxAvailable} скинов`);
+    }
+    input.value = amount;
+    setBetAmount(amount);
+}
+
+function updateBetDisplay() {
+    const display = document.getElementById('bet-amount-display');
+    const maxDisplay = document.getElementById('bet-max-display');
+    if (display) {
+        if (sapperGame.selectedSkin) {
+            const maxCount = sapperGame.selectedSkin.count || 0;
+            display.textContent = `Выбрано: ${sapperGame.betAmount} скин(ов)`;
+            if (maxDisplay) maxDisplay.textContent = `(доступно: ${maxCount})`;
+        } else {
+            display.textContent = 'Выберите скин';
+            if (maxDisplay) maxDisplay.textContent = '';
+        }
+    }
+}
+
+window.sapperClick = function(index) {
+    if (sapperGame.isGameOver) {
+        showToast('Игра уже закончена! Нажмите "Новая игра"');
+        return;
+    }
+
+    if (sapperGame.revealed[index]) {
+        showToast('Этот квадрат уже открыт!');
+        return;
+    }
+
+    if (!sapperGame.selectedSkin) {
+        showToast('⚠️ Сначала выберите скин!');
+        return;
+    }
+
+    const itemIndex = state.inventory.findIndex(i => i.id === sapperGame.selectedSkin.id);
+    if (itemIndex === -1) {
+        showToast('❌ Ошибка! Скин не найден!');
+        sapperGame.isGameOver = true;
+        renderSapperGrid();
+        return;
+    }
+
+    const item = state.inventory[itemIndex];
+    const betAmount = sapperGame.betAmount;
+    
+    if (item.count < betAmount) {
+        showToast(`⚠️ У вас только ${item.count} скинов! Снизьте ставку.`);
+        return;
+    }
+
+    const value = sapperGame.grid[index];
+    const win = value > 0;
+
+    sapperGame.revealed[index] = true;
+    renderSapperGrid();
+
+    let resultText = '';
+
+    if (win) {
+        const winnings = betAmount * value;
+        item.count += winnings;
+        resultText = `🎉 ПОБЕДА! x${value}! Ставка ${betAmount} → +${winnings} ${item.name}! Теперь x${item.count}`;
+        showToast(`✅ +${winnings} ${item.name}!`);
+    } else {
+        item.count -= betAmount;
+        if (item.count <= 0) {
+            state.inventory.splice(itemIndex, 1);
+            resultText = `💀 ПРОИГРЫШ! 0x! Потеряно ${betAmount} ${item.name} полностью!`;
+        } else {
+            resultText = `💀 ПРОИГРЫШ! 0x! Потеряно ${betAmount} ${item.name}. Осталось x${item.count}`;
+        }
+        showToast(`❌ Потеряно ${betAmount} ${item.name}`);
+    }
+
+    sapperGame.isGameOver = true;
+    
+    for (let i = 0; i < sapperGame.revealed.length; i++) {
+        sapperGame.revealed[i] = true;
+    }
+    renderSapperGrid();
+
+    const status = document.getElementById('game-status');
+    if (status) {
+        status.innerHTML = resultText;
+        status.style.color = win ? '#22c55e' : '#ef4444';
+    }
+
+    saveState();
+    renderInventory();
+    updateUI();
+
+    sapperGame.selectedSkin = null;
+    document.getElementById('bet-amount-container').style.display = 'none';
+};
+
+window.resetSapperGame = function() {
+    if (!sapperGame.isGameOver) {
+        if (!confirm('Начать новую игру? Текущая будет сброшена.')) return;
+    }
+    initSapperGame();
+    document.getElementById('bet-amount-container').style.display = 'none';
+    document.getElementById('custom-bet-amount').value = 1;
+    showToast('🔄 Новая игра начата!');
+};
+
+// ВЫБОР СКИНА ДЛЯ САПЁРА
+window.selectSkinForCasino = function(skinId) {
+    const item = state.inventory.find(i => i.id === skinId);
+    if (!item || item.count < 1) {
+        showToast('❌ Скин недоступен!');
+        return;
+    }
+    
+    if (sapperGame.isGameOver) {
+        showToast('Игра закончена! Нажмите "Новая игра"');
+        return;
+    }
+    
+    sapperGame.selectedSkin = item;
+    sapperGame.betAmount = 1;
+    document.getElementById('custom-bet-amount').value = 1;
+    document.getElementById('bet-amount-container').style.display = 'block';
+    updateBetDisplay();
+    renderCasinoInventory();
+    const status = document.getElementById('game-status');
+    if (status) {
+        status.textContent = `✅ Выбран скин: ${item.name}. Выберите количество для ставки!`;
+        status.style.color = '#f59e0b';
+    }
+    showToast(`✅ Выбран: ${item.name}`);
+};
+
+// РЕНДЕР СКИНОВ В КАЗИНО
+function renderCasinoInventory() {
+    const container = document.getElementById('casino-inventory');
+    if (!container) return;
+    
+    const balanceEl = document.getElementById('casino-balance');
+    if (balanceEl) balanceEl.innerText = state.balance + ' R';
+    
+    const countEl = document.getElementById('casino-skin-count');
+    if (countEl) {
+        const total = state.inventory.reduce((sum, i) => sum + (i.count || 1), 0);
+        countEl.innerText = total;
+    }
+    
+    if (!state.inventory || state.inventory.length === 0) {
+        container.innerHTML = `<div style="grid-column:1/-1; text-align:center; padding:30px; background:#1a1d27; border-radius:16px; border:2px dashed #2a2d3a; color:#94a3b8;">Нет скинов для ставок</div>`;
+        return;
+    }
+
+    container.innerHTML = state.inventory.map(item => {
+        const skin = SKINS_DATABASE.find(s => s.id === item.id);
+        const img = skin ? skin.img : item.img;
+        const price = skin ? skin.price : item.price;
+        const weapon = item.weapon ? item.weapon.replace('★', '').trim() : 'Скин';
+        let shortName = item.name;
+        if (item.name && item.name.includes('|')) {
+            shortName = item.name.split('|')[1].trim();
+        }
+        if (!shortName || shortName.length < 2) {
+            shortName = item.name || weapon;
+        }
+        const isSelected = sapperGame.selectedSkin && sapperGame.selectedSkin.id === item.id;
+        const rarityColor = getRarityColor(item.rarity);
+        const isDisabled = sapperGame.isGameOver;
+        
+        return `
+            <div class="skin-card rarity-${item.rarity} ${isSelected ? 'selected' : ''}" onclick="${!isDisabled ? `selectSkinForCasino(${item.id})` : ''}" style="background: #1a1d27; border-radius:12px; padding:12px 8px; text-align:center; border:2px solid ${isSelected ? '#f59e0b' : '#2a2d3a'}; position:relative; cursor:${isDisabled ? 'not-allowed' : 'pointer'}; transition:all 0.3s; opacity:${isDisabled ? 0.6 : 1};">
+                <div style="height:4px; border-radius:4px 4px 0 0; background:${rarityColor}; position:absolute; top:0; left:0; right:0;"></div>
+                ${item.count > 1 ? `<div style="position:absolute; top:6px; right:6px; background:#f59e0b; color:#000; font-size:11px; font-weight:800; padding:1px 8px; border-radius:20px;">x${item.count}</div>` : ''}
+                <div style="font-size:11px; color:#8a99ad; margin-top:6px;">${weapon}</div>
+                <div style="font-size:13px; font-weight:700; margin:2px 0; color:#fff;">${shortName}</div>
+                <div style="height:60px; display:flex; align-items:center; justify-content:center; margin:4px 0;">
+                    <img src="${img}" style="max-height:55px; max-width:100%; object-fit:contain;" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22100%22 height=%22100%22%3E%3Crect width=%22100%22 height=%22100%22 fill=%22%231a1d27%22/%3E%3Ctext x=%2250%22 y=%2250%22 text-anchor=%22middle%22 dy=%22.3em%22 fill=%22%236b7280%22 font-size=%2212%22%3E${weapon}%3C/text%3E%3C/svg%3E';">
+                </div>
+                <div style="font-size:14px; font-weight:800; color:#f59e0b; margin:2px 0;">${price} R</div>
+                <button class="select-btn" onclick="event.stopPropagation(); ${!isDisabled ? `selectSkinForCasino(${item.id})` : ''}" style="background:${isSelected ? 'linear-gradient(135deg, #f59e0b, #d97706)' : '#2a2d3a'}; color:${isSelected ? '#000' : '#94a3b8'}; border:none; padding:6px 12px; border-radius:8px; font-size:11px; font-weight:700; cursor:${isDisabled ? 'not-allowed' : 'pointer'}; width:100%; margin-top:4px;">
+                    ${isSelected ? '✅ Выбран' : '🎯 Выбрать'}
+                </button>
+            </div>
+        `;
+    }).join('');
+}
+
+// ИНИЦИАЛИЗАЦИЯ
+document.addEventListener('DOMContentLoaded', function() {
+    initSapperGame();
+});
+
+document.querySelectorAll('.nav-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+        if (this.dataset.tab === 'casino') {
+            renderCasinoInventory();
+            if (!sapperGame.grid.length) initSapperGame();
+        }
+    });
+});
