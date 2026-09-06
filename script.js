@@ -880,12 +880,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 // ==========================================
-// 15. САПЁР (КВАДРАТИКИ)
+// 13. САПЁР (С ВЫБОРОМ КОЛИЧЕСТВА)
 // ==========================================
 
 const SAPPER_MULTIPLIERS = [0, 0, 0, 2, 2, 3, 3, 5, 10];
 let sapperGame = {
     selectedSkin: null,
+    betAmount: 1,
     grid: [],
     revealed: [],
     isGameOver: false
@@ -905,20 +906,23 @@ function initSapperGame() {
     sapperGame.revealed = new Array(9).fill(false);
     sapperGame.isGameOver = false;
     sapperGame.selectedSkin = null;
+    sapperGame.betAmount = 1;
     renderSapperGrid();
+    document.getElementById('bet-amount-container').style.display = 'none';
     const status = document.getElementById('game-status');
-    if (status) status.textContent = 'Выберите скин и нажмите на квадрат!';
+    if (status) {
+        status.textContent = 'Выберите скин и количество для ставки';
+        status.style.color = '#94a3b8';
+    }
+    updateBetDisplay();
 }
 
 function renderSapperGrid() {
     const container = document.getElementById('sapper-grid');
-    if (!container) {
-        console.warn('⚠️ sapper-grid не найден!');
-        return;
-    }
+    if (!container) return;
     
     if (!sapperGame.grid || sapperGame.grid.length === 0) {
-        container.innerHTML = '<div style="grid-column:1/-1; text-align:center; color:#ef4444; padding:20px;">Ошибка! Перезагрузите страницу.</div>';
+        container.innerHTML = '<div style="grid-column:1/-1; text-align:center; color:#ef4444;">Ошибка! Перезагрузите страницу.</div>';
         return;
     }
 
@@ -966,119 +970,56 @@ function renderSapperGrid() {
     }).join('');
 }
 
-window.sapperClick = function(index) {
-    if (sapperGame.isGameOver) {
-        showToast('Игра уже закончена! Нажмите "Новая игра"');
-        return;
-    }
-
-    if (sapperGame.revealed[index]) {
-        showToast('Этот квадрат уже открыт!');
-        return;
-    }
-
+// Установка количества скинов для ставки
+function setBetAmount(amount) {
     if (!sapperGame.selectedSkin) {
-        showToast('⚠️ Сначала выберите скин! Нажмите "Выбрать" на карточке скина.');
+        showToast('⚠️ Сначала выберите скин!');
         return;
     }
-
-    // Находим скин в инвентаре
-    const itemIndex = state.inventory.findIndex(i => i.id === sapperGame.selectedSkin.id);
-    if (itemIndex === -1) {
-        showToast('❌ Ошибка! Скин не найден!');
-        sapperGame.isGameOver = true;
-        renderSapperGrid();
+    const maxAvailable = sapperGame.selectedSkin.count || 0;
+    if (amount > maxAvailable) {
+        showToast(`⚠️ У вас только ${maxAvailable} скинов ${sapperGame.selectedSkin.name}!`);
+        amount = maxAvailable;
+    }
+    if (amount < 1) {
+        showToast('❌ Минимум 1 скин!');
         return;
     }
+    sapperGame.betAmount = amount;
+    updateBetDisplay();
+    showToast(`✅ Ставка: ${amount} ${sapperGame.selectedSkin.name}`);
+}
 
-    const item = state.inventory[itemIndex];
-    const value = sapperGame.grid[index];
-    const win = value > 0;
+function applyCustomBet() {
+    const input = document.getElementById('custom-bet-amount');
+    if (!input) return;
+    let amount = parseInt(input.value) || 1;
+    if (amount < 1) amount = 1;
+    const maxAvailable = sapperGame.selectedSkin ? sapperGame.selectedSkin.count : 0;
+    if (maxAvailable > 0 && amount > maxAvailable) {
+        amount = maxAvailable;
+        showToast(`⚠️ Максимум ${maxAvailable} скинов`);
+    }
+    input.value = amount;
+    setBetAmount(amount);
+}
 
-    // Открываем квадрат
-    sapperGame.revealed[index] = true;
-    renderSapperGrid();
-
-    let resultText = '';
-
-    if (win) {
-        item.count += value;
-        resultText = `🎉 ПОБЕДА! x${value}! +${value} ${item.name}! Теперь x${item.count}`;
-        showToast(`✅ +${value} ${item.name}!`);
-    } else {
-        if (item.count > 1) {
-            item.count -= 1;
-            resultText = `💀 ПРОИГРЫШ! 0x! Потерян ${item.name}. Осталось x${item.count}`;
+function updateBetDisplay() {
+    const display = document.getElementById('bet-amount-display');
+    const maxDisplay = document.getElementById('bet-max-display');
+    if (display) {
+        if (sapperGame.selectedSkin) {
+            const maxCount = sapperGame.selectedSkin.count || 0;
+            display.textContent = `Выбрано: ${sapperGame.betAmount} скин(ов)`;
+            if (maxDisplay) maxDisplay.textContent = `(доступно: ${maxCount})`;
         } else {
-            state.inventory.splice(itemIndex, 1);
-            resultText = `💀 ПРОИГРЫШ! 0x! ${item.name} полностью потерян!`;
+            display.textContent = 'Выберите скин';
+            if (maxDisplay) maxDisplay.textContent = '';
         }
-        showToast(`❌ Потерян ${item.name}`);
     }
+}
 
-    sapperGame.isGameOver = true;
-    
-    // Показываем все квадраты
-    for (let i = 0; i < sapperGame.revealed.length; i++) {
-        sapperGame.revealed[i] = true;
-    }
-    renderSapperGrid();
-
-    const status = document.getElementById('game-status');
-    if (status) {
-        status.innerHTML = resultText;
-        status.style.color = win ? '#22c55e' : '#ef4444';
-    }
-
-    saveState();
-    renderInventory();
-    renderCasinoInventory();
-    updateUI();
-
-    sapperGame.selectedSkin = null;
-    renderCasinoInventory();
-};
-
-window.resetSapperGame = function() {
-    if (!sapperGame.isGameOver) {
-        if (!confirm('Начать новую игру? Текущая будет сброшена.')) return;
-    }
-    initSapperGame();
-    const status = document.getElementById('game-status');
-    if (status) {
-        status.textContent = 'Выберите скин и нажмите на квадрат!';
-        status.style.color = '#94a3b8';
-    }
-    renderCasinoInventory();
-    showToast('🔄 Новая игра начата!');
-};
-
-// Переопределяем selectSkinForCasino для сапёра
-window.selectSkinForCasino = function(skinId) {
-    const item = state.inventory.find(i => i.id === skinId);
-    if (!item || item.count < 1) {
-        showToast('❌ Скин недоступен!');
-        return;
-    }
-    
-    if (sapperGame.isGameOver) {
-        showToast('Игра закончена! Нажмите "Новая игра"');
-        return;
-    }
-    
-    sapperGame.selectedSkin = item;
-    renderCasinoInventory();
-    const status = document.getElementById('game-status');
-    if (status) {
-        status.textContent = `✅ Выбран скин: ${item.name}`;
-        status.style.color = '#f59e0b';
-    }
-    showToast(`✅ Выбран: ${item.name}`);
-};
-
-// Переопределяем renderCasinoInventory для сапёра
-const originalRenderCasino = renderCasinoInventory;
-renderCasinoInventory = function() {
+function renderCasinoInventory() {
     const container = document.getElementById('casino-inventory');
     if (!container) return;
     
@@ -1113,7 +1054,7 @@ renderCasinoInventory = function() {
         const isDisabled = sapperGame.isGameOver;
         
         return `
-            <div class="skin-card rarity-${item.rarity} ${isSelected ? 'selected' : ''}" onclick="${!isDisabled ? `selectSkinForCasino(${item.id})` : ''}" style="background: #1a1d27; border-radius:12px; padding:12px 8px; text-align:center; border:2px solid ${isSelected ? '#f59e0b' : '#2a2d3a'}; position:relative; cursor:${isDisabled ? 'not-allowed' : 'pointer'}; transition:all 0.3s; opacity:${isDisabled ? 0.6 : 1};">
+            <div class="casino-card rarity-${item.rarity} ${isSelected ? 'selected' : ''}" onclick="${!isDisabled ? `selectSkinForCasino(${item.id})` : ''}" style="background: linear-gradient(145deg, #1a1d27, #13151e); border-radius:14px; padding:12px 8px; text-align:center; border:2px solid ${isSelected ? '#f59e0b' : '#2a2d3a'}; position:relative; cursor:${isDisabled ? 'not-allowed' : 'pointer'}; transition:all 0.3s; opacity:${isDisabled ? 0.6 : 1};">
                 <div style="height:4px; border-radius:4px 4px 0 0; background:${rarityColor}; position:absolute; top:0; left:0; right:0;"></div>
                 ${item.count > 1 ? `<div style="position:absolute; top:6px; right:6px; background:#f59e0b; color:#000; font-size:11px; font-weight:800; padding:1px 8px; border-radius:20px;">x${item.count}</div>` : ''}
                 <div style="font-size:11px; color:#8a99ad; margin-top:6px;">${weapon}</div>
@@ -1128,21 +1069,120 @@ renderCasinoInventory = function() {
             </div>
         `;
     }).join('');
+}
+
+window.selectSkinForCasino = function(skinId) {
+    const item = state.inventory.find(i => i.id === skinId);
+    if (!item || item.count < 1) {
+        showToast('❌ Скин недоступен!');
+        return;
+    }
+    
+    if (sapperGame.isGameOver) {
+        showToast('Игра закончена! Нажмите "Новая игра"');
+        return;
+    }
+    
+    sapperGame.selectedSkin = item;
+    sapperGame.betAmount = 1;
+    document.getElementById('custom-bet-amount').value = 1;
+    document.getElementById('bet-amount-container').style.display = 'block';
+    updateBetDisplay();
+    renderCasinoInventory();
+    const status = document.getElementById('game-status');
+    if (status) {
+        status.textContent = `✅ Выбран скин: ${item.name}. Выберите количество для ставки!`;
+        status.style.color = '#f59e0b';
+    }
+    showToast(`✅ Выбран: ${item.name}`);
 };
 
-// Инициализация сапёра при загрузке
-document.addEventListener('DOMContentLoaded', function() {
-    // ... существующий код ...
-    // Добавляем инициализацию сапёра
-    initSapperGame();
-});
+window.sapperClick = function(index) {
+    if (sapperGame.isGameOver) {
+        showToast('Игра уже закончена! Нажмите "Новая игра"');
+        return;
+    }
 
-// Обновляем состояние при переключении на вкладку сапёра
-document.querySelectorAll('.nav-btn').forEach(btn => {
-    btn.addEventListener('click', function() {
-        if (this.dataset.tab === 'casino') {
-            renderCasinoInventory();
-            if (!sapperGame.grid.length) initSapperGame();
+    if (sapperGame.revealed[index]) {
+        showToast('Этот квадрат уже открыт!');
+        return;
+    }
+
+    if (!sapperGame.selectedSkin) {
+        showToast('⚠️ Сначала выберите скин! Нажмите "Выбрать" на карточке скина.');
+        return;
+    }
+
+    // Проверяем, что у игрока достаточно скинов для ставки
+    const itemIndex = state.inventory.findIndex(i => i.id === sapperGame.selectedSkin.id);
+    if (itemIndex === -1) {
+        showToast('❌ Ошибка! Скин не найден в инвентаре!');
+        return;
+    }
+    
+    const item = state.inventory[itemIndex];
+    const betAmount = sapperGame.betAmount;
+    
+    if (item.count < betAmount) {
+        showToast(`⚠️ У вас только ${item.count} скинов! Снизьте ставку.`);
+        return;
+    }
+
+    sapperGame.revealed[index] = true;
+    const value = sapperGame.grid[index];
+    const win = value > 0;
+
+    let resultText = '';
+
+    if (win) {
+        // При победе умножаем количество скинов на множитель
+        // Ставим betAmount, получаем betAmount * value
+        const winnings = betAmount * value;
+        item.count += winnings; // Добавляем выигранные скины (без потери ставки!)
+        resultText = `🎉 ПОБЕДА! x${value}! Ставка ${betAmount} → +${winnings} ${item.name}! Теперь x${item.count}`;
+        showToast(`✅ +${winnings} ${item.name}!`);
+    } else {
+        // При проигрыше теряем только поставленное количество
+        item.count -= betAmount;
+        if (item.count <= 0) {
+            state.inventory.splice(itemIndex, 1);
+            resultText = `💀 ПРОИГРЫШ! 0x! Потеряно ${betAmount} ${item.name} полностью!`;
+        } else {
+            resultText = `💀 ПРОИГРЫШ! 0x! Потеряно ${betAmount} ${item.name}. Осталось x${item.count}`;
         }
-    });
-});
+        showToast(`❌ Потеряно ${betAmount} ${item.name}`);
+    }
+
+    sapperGame.isGameOver = true;
+    
+    for (let i = 0; i < sapperGame.revealed.length; i++) {
+        sapperGame.revealed[i] = true;
+    }
+    renderSapperGrid();
+
+    const status = document.getElementById('game-status');
+    if (status) {
+        status.innerHTML = resultText;
+        status.style.color = win ? '#22c55e' : '#ef4444';
+    }
+
+    saveState();
+    renderInventory();
+    renderCasinoInventory();
+    updateUI();
+
+    sapperGame.selectedSkin = null;
+    document.getElementById('bet-amount-container').style.display = 'none';
+    renderCasinoInventory();
+};
+
+window.resetSapperGame = function() {
+    if (!sapperGame.isGameOver) {
+        if (!confirm('Начать новую игру? Текущая будет сброшена.')) return;
+    }
+    initSapperGame();
+    document.getElementById('bet-amount-container').style.display = 'none';
+    document.getElementById('custom-bet-amount').value = 1;
+    renderCasinoInventory();
+    showToast('🔄 Новая игра начата!');
+};
