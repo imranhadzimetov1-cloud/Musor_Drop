@@ -580,6 +580,197 @@ body {
     to { transform: translateX(0); }
 }
 
+/* ==========================================
+   АДМИН-ПАНЕЛЬ - ИСПРАВЛЕННАЯ
+   ========================================== */
+
+.admin-container {
+    background: #0f172a;
+    border: 1px solid #334155;
+    border-radius: 12px;
+    padding: 15px 18px;
+    margin: 10px 0;
+    max-width: 100%;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.admin-container h3 {
+    margin-bottom: 10px;
+    color: #f8fafc;
+    font-size: 16px;
+}
+
+.admin-inline {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+.admin-inline input,
+.admin-inline select {
+    background: #1e293b;
+    border: 1px solid #475569;
+    color: #f8fafc;
+    padding: 6px 10px;
+    border-radius: 6px;
+    outline: none;
+    font-size: 13px;
+    flex: 1 1 auto;
+    min-width: 80px;
+    max-width: 200px;
+}
+
+.admin-inline .btn {
+    flex: 0 0 auto;
+    padding: 6px 14px;
+    font-size: 12px;
+    white-space: nowrap;
+}
+
+.admin-btn-group {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+
+.admin-tabs {
+    display: flex;
+    gap: 4px;
+    margin-bottom: 10px;
+    border-bottom: 1px solid #1e293b;
+    padding-bottom: 8px;
+    flex-wrap: wrap;
+}
+
+.tab-btn {
+    background: #1e293b;
+    border: 1px solid #334155;
+    color: #94a3b8;
+    padding: 4px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 12px;
+}
+
+.tab-btn.active {
+    background: #38bdf8;
+    color: #0f172a;
+    border-color: #38bdf8;
+}
+
+.admin-tab-content {
+    display: none;
+}
+
+.admin-tab-content.active {
+    display: block;
+}
+
+.admin-group {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin-bottom: 8px;
+}
+
+.admin-group label {
+    font-size: 11px;
+    color: #94a3b8;
+}
+
+.admin-divider {
+    border: 0;
+    height: 1px;
+    background: #1e293b;
+    margin: 8px 0;
+}
+
+.admin-toast {
+    position: fixed;
+    top: 20px;
+    right: -350px;
+    background: #0f172a;
+    color: #f8fafc;
+    border-left: 4px solid #10b981;
+    border-radius: 8px;
+    padding: 10px 16px;
+    font-size: 13px;
+    font-weight: 600;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+    z-index: 9999;
+    transition: right 0.4s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+}
+
+.admin-toast.show {
+    right: 20px;
+}
+
+/* АДМИНКА НА МОБИЛЬНЫХ */
+@media (max-width: 600px) {
+    .admin-container {
+        padding: 10px 12px;
+    }
+
+    .admin-inline {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 4px;
+    }
+
+    .admin-inline input,
+    .admin-inline select {
+        max-width: 100%;
+        width: 100%;
+        flex: 1 1 100%;
+    }
+
+    .admin-inline .btn {
+        width: 100%;
+        text-align: center;
+    }
+
+    .admin-btn-group {
+        flex-direction: column;
+        gap: 4px;
+    }
+
+    .admin-btn-group .btn {
+        width: 100%;
+        text-align: center;
+    }
+
+    .admin-tabs {
+        justify-content: center;
+    }
+
+    .tab-btn {
+        font-size: 11px;
+        padding: 4px 10px;
+        flex: 1 1 auto;
+        text-align: center;
+    }
+
+    .admin-group input,
+    .admin-group select {
+        width: 100%;
+    }
+
+    .admin-toast {
+        top: 10px;
+        right: -300px;
+        font-size: 12px;
+        padding: 8px 14px;
+        max-width: 90%;
+    }
+
+    .admin-toast.show {
+        right: 10px;
+    }
+}
+
 
 /* ==========================================
    РУЛЕТКА (КАЗИНО)
