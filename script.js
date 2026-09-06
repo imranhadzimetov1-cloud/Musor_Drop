@@ -1140,6 +1140,111 @@ document.addEventListener('DOMContentLoaded', function() {
     updateAdminStatus();
 });
 
+// ==========================================
+// КАЗИК (Удвой или потеряй)
+// ==========================================
+
+// Функция рендеринга скинов в казике
+function renderCasinoInventory() {
+    const container = document.getElementById('casino-inventory');
+    if (!container) return;
+
+    if (!state.inventory || state.inventory.length === 0) {
+        container.innerHTML = '<div style="color:#94a3b8; grid-column:1/-1; text-align:center; padding:20px;">У вас нет скинов для ставок!</div>';
+        return;
+    }
+
+    container.innerHTML = state.inventory.map(item => {
+        // Отображаем каждый скин с кнопкой "Поставить"
+        const skin = SKINS_DATABASE.find(s => s.id === item.id);
+        const img = skin ? skin.img : item.img;
+        return `
+            <div class="skin-card rarity-${item.rarity}">
+                <div class="skin-count">x${item.count}</div>
+                <div class="skin-weapon">${item.weapon}</div>
+                <div class="skin-title">${item.name}</div>
+                <div class="skin-img-box">
+                    <img src="${img}" alt="${item.name}" style="max-width:100%; max-height:80px; object-fit:contain;">
+                </div>
+                <div class="skin-price">${item.price} R</div>
+                <button class="btn btn-warning" onclick="playCasino(${item.id})" style="margin-top:8px; background:#f59e0b; color:#000;">🎲 Поставить</button>
+            </div>
+        `;
+    }).join('');
+}
+
+// Игра в казино
+window.playCasino = function(skinId) {
+    // Находим скин в инвентаре
+    const itemIndex = state.inventory.findIndex(i => i.id === skinId);
+    if (itemIndex === -1) {
+        showToast('Скин не найден!');
+        return;
+    }
+
+    const item = state.inventory[itemIndex];
+    if (item.count < 1) {
+        showToast('Недостаточно скинов!');
+        return;
+    }
+
+    // Генерируем результат: 50% победа, 50% проигрыш
+    const win = Math.random() < 0.5; // 50% шанс
+
+    let resultText = '';
+    if (win) {
+        // Победа: добавляем еще один такой же скин
+        // Увеличиваем count на 1
+        item.count += 1;
+        resultText = `🎉 ВЫ ПОБЕДИЛИ! Вы получили ${item.name} в двойном размере! Теперь у вас x${item.count}`;
+        showToast(`✅ Победа! ${item.name} удвоен!`);
+    } else {
+        // Проигрыш: удаляем один скин
+        if (item.count > 1) {
+            item.count -= 1;
+            resultText = `😞 ВЫ ПРОИГРАЛИ! Вы потеряли один ${item.name}. Осталось x${item.count}`;
+        } else {
+            // Удаляем полностью
+            state.inventory.splice(itemIndex, 1);
+            resultText = `💀 ВЫ ПРОИГРАЛИ! Вы потеряли ${item.name} полностью!`;
+        }
+        showToast(`❌ Проигрыш! Вы потеряли ${item.name}`);
+    }
+
+    // Сохраняем состояние
+    saveState();
+
+    // Отображаем результат
+    const resultDiv = document.getElementById('casino-result');
+    const resultTextEl = document.getElementById('casino-result-text');
+    if (resultDiv && resultTextEl) {
+        resultTextEl.innerHTML = resultText;
+        resultDiv.style.display = 'block';
+        resultDiv.style.borderColor = win ? '#22c55e' : '#ef4444';
+    }
+
+    // Обновляем интерфейс (инвентарь и казико)
+    renderInventory();
+    renderCasinoInventory();
+    updateUI();
+};
+
+// Дополнительно: вызываем renderCasinoInventory при переключении на вкладку казика
+// Можно добавить в обработчик клика по вкладке
+document.querySelectorAll('.nav-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+        if (this.dataset.tab === 'casino') {
+            renderCasinoInventory();
+        }
+    });
+});
+
+// Также обновляем при загрузке страницы (если активна вкладка казико)
+document.addEventListener('DOMContentLoaded', function() {
+    // ... существующий код
+    // если активна вкладка casino (по умолчанию нет), но можно вызвать при переключении.
+});
+
 
 
 
