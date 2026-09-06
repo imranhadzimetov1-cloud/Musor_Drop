@@ -919,4 +919,13 @@ console.log('🔥 СКРИПТ ЗАГРУЖЕН!');
 
 
 
+const GITHUB_CONFIG = {
+    owner: 'imranhadzimetov1-cloud',  // ← Ваш логин
+    repo: 'Musor_Drop',               // ← Название репозитория
+    path: 'market_prices1122.json',       // ← Файл для цен
+    token: 'YOUR_GITHUB_TOKEN_HERE'   // ← СЮДА НЕ ВСТАВЛЯЙТЕ ТОКЕН!
+};
+
+
+
 
