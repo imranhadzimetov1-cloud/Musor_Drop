@@ -218,86 +218,98 @@
         </div>
     </div>
 
-    <!-- АДМИН-ПАНЕЛЬ -->
-    <div id="admin-panel" class="admin-container" style="display: none;">
-        <h3>⚙️ Управление Биржей</h3>
+    <!-- АДМИН-ПАНЕЛЬ (КРАСИВАЯ ВЕРСИЯ) -->
+<div id="admin-panel" class="admin-container" style="display: none; margin-top: 16px;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+        <h3 style="margin: 0; font-size: 16px; color: #f8fafc;">⚙️ Управление Биржей</h3>
+        <button onclick="logoutAdmin()" style="background: rgba(239,68,68,0.15); color: #ef4444; border: 1px solid #ef4444; border-radius: 6px; padding: 4px 14px; cursor: pointer; font-size: 12px; font-weight: 600;">🚪 Выйти</button>
+    </div>
 
-        <div class="admin-tabs">
-            <button class="tab-btn active" onclick="switchAdminTab('economy')">💰 Деньги</button>
-            <button class="tab-btn" onclick="switchAdminTab('players')">👥 Игроки и Баны</button>
-            <button class="tab-btn" onclick="switchAdminTab('market')">📈 Цены Рынка</button>
-        </div>
+    <!-- Вкладки -->
+    <div class="admin-tabs">
+        <button class="tab-btn active" onclick="switchAdminTab('economy')">💰 Деньги</button>
+        <button class="tab-btn" onclick="switchAdminTab('players')">👥 Игроки и Баны</button>
+        <button class="tab-btn" onclick="switchAdminTab('market')">📈 Цены Рынка</button>
+    </div>
 
-        <div id="tab-economy" class="admin-tab-content active">
-            <div class="admin-group">
-                <input type="number" id="admin-money-amount" value="5000" placeholder="Сумма (R)">
-                <div class="admin-btn-group">
-                    <button class="btn btn-success" onclick="adminAddMoney()">💵 + Добавить</button>
-                    <button class="btn btn-primary" onclick="adminSetMoney()">✏️ Установить</button>
-                    <button class="btn btn-danger" onclick="adminResetMoney()">🔄 Сбросить в 0</button>
-                </div>
-            </div>
-        </div>
-
-        <div id="tab-players" class="admin-tab-content">
-            <div class="admin-group">
-                <label>Выдать скин себе в инвентарь:</label>
-                <div class="admin-inline">
-                    <select id="admin-give-skin-select"></select>
-                    <button class="btn btn-success" onclick="adminGiveSkin()">🎁 Выдать скин</button>
-                </div>
-            </div>
-            <hr class="admin-divider">
-            <div class="admin-group">
-                <label>Управление банами:</label>
-                <div class="admin-inline">
-                    <input type="text" id="admin-target-id" placeholder="ID игрока (#123456)">
-                    <button class="btn btn-danger" onclick="adminBanPlayer()">🚫 Забанить</button>
-                    <button class="btn btn-secondary" onclick="adminUnbanPlayer()">Разбанить</button>
-                </div>
-            </div>
-        </div>
-
-        <div id="tab-market" class="admin-tab-content">
-            <div id="admin-status" style="padding:8px 12px; border-radius:6px; background:#1a1d27; margin-bottom:12px; text-align:center; font-weight:bold;">
-                ❌ Админ: Не авторизован
-            </div>
-
-            <div class="admin-inline" style="margin-bottom:12px;">
-                <button class="btn btn-primary" onclick="adminLogin()" style="flex:1;">🔑 Войти как админ</button>
-                <button class="btn btn-danger" onclick="adminLogout()" style="flex:1;">🚪 Выйти</button>
-            </div>
-
-            <hr class="admin-divider">
-
-            <div class="admin-group">
-                <label>Изменение цены предмета:</label>
-                <div class="admin-inline">
-                    <select id="admin-market-skin-select"></select>
-                    <input type="number" id="admin-market-price-input" placeholder="Новая цена (R)">
-                    <button class="btn btn-success" onclick="adminUpdateMarketPrice()">Применить</button>
-                </div>
-            </div>
-
-            <div class="admin-btn-group" style="margin-top: 10px;">
-                <button class="btn btn-primary" onclick="adminPumpAll(20)">🚀 Памп (+20%)</button>
-                <button class="btn btn-danger" onclick="adminDumpAll(20)">📉 Дамп (-20%)</button>
-            </div>
-
-            <div class="admin-btn-group" style="margin-top: 10px;">
-                <button class="btn btn-success" onclick="adminPumpAllWithSync(20)" style="background:#22c55e; flex:1;">
-                    📈 +20% (Синхр.)
-                </button>
-                <button class="btn btn-danger" onclick="adminDumpAllWithSync(20)" style="flex:1;">
-                    📉 -20% (Синхр.)
-                </button>
-            </div>
-
-            <div style="margin-top:10px; font-size:11px; color:#64748b; text-align:center;">
-                ⚡ Кнопки с "Синхр." сохраняют цены на сервер для всех пользователей
+    <!-- Вкладка: Деньги -->
+    <div id="tab-economy" class="admin-tab-content active">
+        <div class="admin-group">
+            <div class="admin-inline">
+                <input type="number" id="admin-money-amount" value="5000" placeholder="Сумма (R)" style="flex: 0 0 120px;">
+                <button class="btn btn-success" onclick="adminAddMoney()" style="padding: 6px 14px; font-size: 12px;">💵 + Добавить</button>
+                <button class="btn btn-primary" onclick="adminSetMoney()" style="padding: 6px 14px; font-size: 12px;">✏️ Установить</button>
+                <button class="btn btn-danger" onclick="adminResetMoney()" style="padding: 6px 14px; font-size: 12px;">🔄 Сбросить в 0</button>
             </div>
         </div>
     </div>
+
+    <!-- Вкладка: Игроки и Баны -->
+    <div id="tab-players" class="admin-tab-content">
+        <!-- Выдача скинов -->
+        <div class="admin-group">
+            <label style="font-size: 12px; color: #94a3b8; font-weight: 600;">🎁 ВЫДАТЬ СКИН СЕБЕ В ИНВЕНТАРЬ:</label>
+            <div class="admin-inline">
+                <select id="admin-give-skin-select" style="flex: 1; min-width: 150px;"></select>
+                <button class="btn btn-success" onclick="adminGiveSkin()" style="padding: 6px 16px; font-size: 12px;">🎁 Выдать скин</button>
+            </div>
+        </div>
+
+        <hr class="admin-divider">
+
+        <!-- Управление банами -->
+        <div class="admin-group">
+            <label style="font-size: 12px; color: #94a3b8; font-weight: 600;">🚫 УПРАВЛЕНИЕ БАНАМИ:</label>
+            <div class="admin-inline">
+                <input type="text" id="admin-target-id" placeholder="ID игрока (#123456)" style="flex: 0 0 180px;">
+                <button class="btn btn-danger" onclick="adminBanPlayer()" style="padding: 6px 16px; font-size: 12px;">🚫 Забанить</button>
+                <button class="btn btn-secondary" onclick="adminUnbanPlayer()" style="padding: 6px 16px; font-size: 12px;">✅ Разбанить</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Вкладка: Цены Рынка -->
+    <div id="tab-market" class="admin-tab-content">
+        <!-- Статус админа -->
+        <div id="admin-status" style="padding: 6px 12px; border-radius: 6px; background: #1a1d27; margin-bottom: 10px; text-align: center; font-weight: 600; font-size: 13px; border: 1px solid #2a2d3a;">
+            ❌ Админ: Не авторизован
+        </div>
+
+        <!-- Вход/выход -->
+        <div class="admin-inline" style="margin-bottom: 10px;">
+            <button class="btn btn-primary" onclick="adminLogin()" style="flex: 1; padding: 6px; font-size: 12px;">🔑 Войти как админ</button>
+            <button class="btn btn-danger" onclick="adminLogout()" style="flex: 1; padding: 6px; font-size: 12px;">🚪 Выйти</button>
+        </div>
+
+        <hr class="admin-divider">
+
+        <!-- Изменение цены -->
+        <div class="admin-group">
+            <label style="font-size: 12px; color: #94a3b8; font-weight: 600;">📊 ИЗМЕНЕНИЕ ЦЕНЫ ПРЕДМЕТА:</label>
+            <div class="admin-inline">
+                <select id="admin-market-skin-select" style="flex: 1; min-width: 150px;"></select>
+                <input type="number" id="admin-market-price-input" placeholder="Новая цена (R)" style="flex: 0 0 120px;">
+                <button class="btn btn-success" onclick="adminUpdateMarketPrice()" style="padding: 6px 16px; font-size: 12px;">Применить</button>
+            </div>
+        </div>
+
+        <!-- Памп/дамп -->
+        <div class="admin-btn-group" style="margin-top: 8px;">
+            <button class="btn btn-primary" onclick="adminPumpAll(20)" style="flex: 1; padding: 6px; font-size: 12px;">🚀 Памп (+20%)</button>
+            <button class="btn btn-danger" onclick="adminDumpAll(20)" style="flex: 1; padding: 6px; font-size: 12px;">📉 Дамп (-20%)</button>
+        </div>
+
+        <!-- Синхронизация -->
+        <div class="admin-btn-group" style="margin-top: 6px;">
+            <button class="btn btn-success" onclick="adminPumpAllWithSync(20)" style="flex: 1; padding: 6px; font-size: 12px; background: #22c55e;">📈 +20% (Синхр.)</button>
+            <button class="btn btn-danger" onclick="adminDumpAllWithSync(20)" style="flex: 1; padding: 6px; font-size: 12px;">📉 -20% (Синхр.)</button>
+        </div>
+
+        <div style="margin-top: 8px; font-size: 11px; color: #64748b; text-align: center; border-top: 1px solid #1e293b; padding-top: 8px;">
+            ⚡ Кнопки с "Синхр." сохраняют цены на сервер для всех пользователей
+        </div>
+    </div>
+</div>
 
     <div id="admin-toast" class="admin-toast"></div>
 
