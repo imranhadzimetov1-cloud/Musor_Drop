@@ -894,168 +894,21 @@ window.logoutAdmin = function() {
 };
 
 // ==========================================
-// 14. РУЛЕТКА (КАЗИНО)
+// ВРАЩЕНИЕ РУЛЕТКИ (ИСПРАВЛЕНО)
 // ==========================================
-
-let selectedSkinForCasino = null;
-let isWheelSpinning = false;
-let wheelRotation = 0;
-
-const WHEEL_SECTORS = [
-    { label: '0x', multiplier: 0, color: '#ef4444' },
-    { label: '1x', multiplier: 1, color: '#6b7280' },
-    { label: '0x', multiplier: 0, color: '#ef4444' },
-    { label: '2x', multiplier: 2, color: '#22c55e' },
-    { label: '0x', multiplier: 0, color: '#ef4444' },
-    { label: '1x', multiplier: 1, color: '#6b7280' },
-    { label: '0x', multiplier: 0, color: '#ef4444' },
-    { label: '3x', multiplier: 3, color: '#4b69ff' },
-    { label: '0x', multiplier: 0, color: '#ef4444' },
-    { label: '5x', multiplier: 5, color: '#d32ce6' }
-];
-
-function drawWheel(highlightIndex = -1) {
-    const canvas = document.getElementById('wheelCanvas');
-    if (!canvas) return;
-    
-    const ctx = canvas.getContext('2d');
-    const centerX = canvas.width / 2;
-    const centerY = canvas.height / 2;
-    const radius = Math.min(centerX, centerY) - 10;
-    const sliceAngle = (2 * Math.PI) / WHEEL_SECTORS.length;
-
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-    WHEEL_SECTORS.forEach((sector, i) => {
-        const startAngle = i * sliceAngle + wheelRotation - Math.PI / 2;
-        const endAngle = startAngle + sliceAngle;
-
-        ctx.beginPath();
-        ctx.moveTo(centerX, centerY);
-        ctx.arc(centerX, centerY, radius, startAngle, endAngle);
-        ctx.closePath();
-
-        ctx.fillStyle = sector.color;
-        ctx.fill();
-
-        ctx.strokeStyle = '#ffffff';
-        ctx.lineWidth = 2;
-        ctx.stroke();
-
-        const textAngle = startAngle + sliceAngle / 2;
-        const textX = centerX + Math.cos(textAngle) * (radius * 0.7);
-        const textY = centerY + Math.sin(textAngle) * (radius * 0.7);
-
-        ctx.fillStyle = '#ffffff';
-        ctx.font = 'bold 18px Arial';
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-        ctx.fillText(sector.label, textX, textY);
-    });
-
-    // Центр
-    ctx.beginPath();
-    ctx.arc(centerX, centerY, 25, 0, 2 * Math.PI);
-    ctx.fillStyle = '#1a1d27';
-    ctx.fill();
-    ctx.strokeStyle = '#f59e0b';
-    ctx.lineWidth = 3;
-    ctx.stroke();
-
-    ctx.fillStyle = '#f59e0b';
-    ctx.font = 'bold 14px Arial';
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.fillText('🎰', centerX, centerY);
-
-    if (highlightIndex >= 0 && highlightIndex < WHEEL_SECTORS.length) {
-        const startAngle = highlightIndex * sliceAngle + wheelRotation - Math.PI / 2;
-        const endAngle = startAngle + sliceAngle;
-
-        ctx.beginPath();
-        ctx.moveTo(centerX, centerY);
-        ctx.arc(centerX, centerY, radius + 3, startAngle, endAngle);
-        ctx.closePath();
-        ctx.shadowColor = '#f59e0b';
-        ctx.shadowBlur = 30;
-        ctx.fillStyle = 'rgba(245, 158, 11, 0.3)';
-        ctx.fill();
-        ctx.shadowBlur = 0;
-    }
-}
-
-function renderCasinoInventory() {
-    const container = document.getElementById('casino-inventory');
-    if (!container) return;
-    
-    const balanceEl = document.getElementById('casino-balance');
-    if (balanceEl) balanceEl.innerText = state.balance + ' R';
-    
-    const countEl = document.getElementById('casino-skin-count');
-    if (countEl) {
-        const total = state.inventory.reduce((sum, i) => sum + (i.count || 1), 0);
-        countEl.innerText = total;
-    }
-    
-    if (!state.inventory || state.inventory.length === 0) {
-        container.innerHTML = `
-            <div style="grid-column:1/-1; text-align:center; padding:40px; background:#1a1d27; border-radius:16px; border:2px dashed #2a2d3a;">
-                <div style="font-size:48px;">🎒</div>
-                <div style="color:#94a3b8;">Нет скинов для ставок</div>
-            </div>
-        `;
-        return;
-    }
-
-    container.innerHTML = state.inventory.map(item => {
-        const skin = SKINS_DATABASE.find(s => s.id === item.id);
-        const img = skin ? skin.img : item.img;
-        const price = skin ? skin.price : item.price;
-        const shortName = item.name.includes('|') ? item.name.split('|')[1].trim() : item.name;
-        const isSelected = selectedSkinForCasino && selectedSkinForCasino.id === item.id;
-        
-        return `
-            <div class="casino-card rarity-${item.rarity} ${isSelected ? 'selected' : ''}" onclick="selectSkinForCasino(${item.id})" style="background: linear-gradient(145deg, #1a1d27, #13151e); border-radius:14px; padding:14px 10px; text-align:center; border:2px solid ${isSelected ? '#f59e0b' : '#2a2d3a'}; position:relative; cursor:pointer; transition:all 0.3s;">
-                <div style="height:4px; border-radius:4px 4px 0 0; background:${getRarityColor(item.rarity)};"></div>
-                ${item.count > 1 ? `<div style="position:absolute; top:8px; right:8px; background:#f59e0b; color:#000; font-size:11px; font-weight:800; padding:2px 8px; border-radius:20px;">x${item.count}</div>` : ''}
-                <div style="font-size:11px; color:#8a99ad; margin-top:4px;">${item.weapon}</div>
-                <div style="font-size:13px; font-weight:700; margin:3px 0; color:#fff;">${shortName}</div>
-                <div style="height:65px; display:flex; align-items:center; justify-content:center; margin:6px 0;">
-                    <img src="${img}" style="max-height:60px; max-width:100%; object-fit:contain;" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22100%22 height=%22100%22%3E%3Crect width=%22100%22 height=%22100%22 fill=%22%231a1d27%22/%3E%3Ctext x=%2250%22 y=%2250%22 text-anchor=%22middle%22 dy=%22.3em%22 fill=%22%236b7280%22 font-size=%2212%22%3E${item.weapon}%3C/text%3E%3C/svg%3E';">
-                </div>
-                <div style="font-size:14px; font-weight:800; color:#f59e0b; margin:4px 0;">${price} R</div>
-                <button onclick="event.stopPropagation(); selectSkinForCasino(${item.id});" style="background:${isSelected ? 'linear-gradient(135deg, #f59e0b, #d97706)' : '#2a2d3a'}; color:${isSelected ? '#000' : '#94a3b8'}; border:none; padding:8px; border-radius:8px; font-size:12px; font-weight:700; cursor:pointer; width:100%;">
-                    ${isSelected ? '✅ Выбран' : '🎯 Выбрать'}
-                </button>
-            </div>
-        `;
-    }).join('');
-}
-
-window.selectSkinForCasino = function(skinId) {
-    const item = state.inventory.find(i => i.id === skinId);
-    if (!item || item.count < 1) {
-        showToast('❌ Скин недоступен!');
-        return;
-    }
-    selectedSkinForCasino = item;
-    renderCasinoInventory();
-    showToast(`✅ Выбран: ${item.name}`);
-};
-
 window.spinWheel = function() {
     if (isWheelSpinning) {
-        showToast('⏳ Рулетка крутится!');
+        showToast('⏳ Рулетка уже крутится!');
         return;
     }
 
     if (!selectedSkinForCasino) {
-        showToast('⚠️ Выберите скин!');
+        showToast('⚠️ Сначала выберите скин для ставки!');
         return;
     }
 
     if (selectedSkinForCasino.count < 1) {
-        showToast('❌ Нет скина!');
+        showToast('❌ У вас нет этого скина!');
         selectedSkinForCasino = null;
         renderCasinoInventory();
         return;
@@ -1065,11 +918,20 @@ window.spinWheel = function() {
     const btn = document.getElementById('spin-wheel-btn');
     if (btn) btn.disabled = true;
 
+    // Случайный выбор сектора (0-9)
     const resultIndex = Math.floor(Math.random() * WHEEL_SECTORS.length);
-    const resultSector = WHEEL_SECTORS[resultIndex];
+    console.log('🎯 Выпал сектор:', resultIndex, WHEEL_SECTORS[resultIndex].label);
     
+    // Количество полных оборотов (8-12)
     const spins = 8 + Math.random() * 4;
-    const angle = spins * 2 * Math.PI - (resultIndex / WHEEL_SECTORS.length) * 2 * Math.PI;
+    // Угол поворота: полные обороты + доворот до нужного сектора
+    // Каждый сектор занимает (2*PI / 10) радиан = 36 градусов
+    const sliceAngle = (2 * Math.PI) / WHEEL_SECTORS.length;
+    // Чтобы сектор index оказался наверху (под стрелкой), нужно довернуть на:
+    // - (index * sliceAngle) + (sliceAngle / 2) - PI/2
+    const targetAngle = -(resultIndex * sliceAngle + sliceAngle / 2) + Math.PI / 2;
+    // Полный угол с оборотами
+    const angle = spins * 2 * Math.PI + targetAngle;
     
     const duration = 4000;
     const startTime = Date.now();
@@ -1079,6 +941,7 @@ window.spinWheel = function() {
     function animateWheel() {
         const elapsed = Date.now() - startTime;
         const progress = Math.min(elapsed / duration, 1);
+        // Замедление в конце
         const easeOut = 1 - Math.pow(1 - progress, 3);
         wheelRotation = startRotation + angle * easeOut;
         drawWheel();
@@ -1086,24 +949,30 @@ window.spinWheel = function() {
             requestAnimationFrame(animateWheel);
         } else {
             wheelRotation = targetRotation;
-            drawWheel();
+            drawWheel(resultIndex);
+            // Подсвечиваем выигрышный сектор на canvas
             setTimeout(() => {
                 processCasinoResult(resultIndex);
-            }, 500);
+            }, 300);
         }
     }
 
     animateWheel();
 };
 
+// ==========================================
+// ОБРАБОТКА РЕЗУЛЬТАТА (ИСПРАВЛЕНО)
+// ==========================================
 function processCasinoResult(resultIndex) {
     const resultSector = WHEEL_SECTORS[resultIndex];
     const multiplier = resultSector.multiplier;
     const win = multiplier > 0;
 
+    console.log('🎯 РЕЗУЛЬТАТ:', resultIndex, resultSector.label, 'x' + multiplier);
+
     const itemIndex = state.inventory.findIndex(i => i.id === selectedSkinForCasino.id);
     if (itemIndex === -1) {
-        showToast('❌ Ошибка!');
+        showToast('❌ Ошибка! Скин не найден!');
         isWheelSpinning = false;
         if (document.getElementById('spin-wheel-btn')) {
             document.getElementById('spin-wheel-btn').disabled = false;
@@ -1120,25 +989,27 @@ function processCasinoResult(resultIndex) {
         const addCount = multiplier;
         item.count += addCount;
         resultText = `🎉 ПОБЕДА! x${multiplier}`;
-        detailText = `+${addCount} ${item.name}!<br>Теперь x${item.count}`;
+        detailText = `Вы получили <strong>${item.name}</strong> в количестве <strong style="color:#22c55e;">+${addCount}</strong>!<br>Теперь у вас <strong style="color:#22c55e;">x${item.count}</strong>`;
         icon = '🏆';
-        showToast(`✅ +${addCount} ${item.name}!`);
+        showToast(`✅ Победа! +${addCount} ${item.name}!`);
     } else {
         if (item.count > 1) {
             item.count -= 1;
             resultText = `😞 ПРОИГРЫШ! 0x`;
-            detailText = `Потерян ${item.name}.<br>Осталось x${item.count}`;
+            detailText = `Вы потеряли один <strong>${item.name}</strong>.<br>Осталось <strong style="color:#ef4444;">x${item.count}</strong>`;
         } else {
             state.inventory.splice(itemIndex, 1);
             resultText = `💀 ПРОИГРЫШ! 0x`;
-            detailText = `${item.name} полностью потерян!`;
+            detailText = `Вы полностью потеряли <strong>${item.name}</strong>!`;
         }
         icon = '💀';
-        showToast(`❌ Потерян ${item.name}`);
+        showToast(`❌ Проигрыш! Вы потеряли ${item.name}`);
     }
 
+    // Подсвечиваем выигрышный сектор на canvas
     drawWheel(resultIndex);
 
+    // Отображаем результат
     const resultDiv = document.getElementById('casino-result');
     const resultTextEl = document.getElementById('casino-result-text');
     const resultDetailEl = document.getElementById('casino-result-detail');
@@ -1147,18 +1018,20 @@ function processCasinoResult(resultIndex) {
     if (resultDiv && resultTextEl && resultDetailEl && resultIconEl) {
         resultDiv.style.display = 'block';
         resultDiv.style.borderColor = win ? '#22c55e' : '#ef4444';
-        resultDiv.style.boxShadow = win ? '0 0 40px rgba(34,197,94,0.3)' : '0 0 40px rgba(239,68,68,0.3)';
+        resultDiv.style.boxShadow = win ? '0 0 40px rgba(34, 197, 94, 0.3)' : '0 0 40px rgba(239, 68, 68, 0.3)';
         resultIconEl.textContent = icon;
         resultTextEl.innerHTML = resultText;
         resultTextEl.style.color = win ? '#22c55e' : '#ef4444';
         resultDetailEl.innerHTML = detailText;
     }
 
+    // Сохраняем состояние
     saveState();
     renderInventory();
     renderCasinoInventory();
     updateUI();
 
+    // Сбрасываем флаги
     isWheelSpinning = false;
     selectedSkinForCasino = null;
     if (document.getElementById('spin-wheel-btn')) {
