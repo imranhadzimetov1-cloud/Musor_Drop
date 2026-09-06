@@ -217,19 +217,48 @@
     </div>
 
     <!-- Вкладка 3: Рынок -->
-    <div id="tab-market" class="admin-tab-content">
-        <div class="admin-group">
-            <label>Изменение цены предмета:</label>
-            <div class="admin-inline">
-                <select id="admin-market-skin-select"></select>
-                <input type="number" id="admin-market-price-input" placeholder="Новая цена (R)">
-                <button class="btn btn-success" onclick="adminUpdateMarketPrice()">Применить</button>
-            </div>
+<div id="tab-market" class="admin-tab-content">
+    
+    <!-- СТАТУС АДМИНА -->
+    <div id="admin-status" style="padding:8px 12px; border-radius:6px; background:#1a1d27; margin-bottom:12px; text-align:center; font-weight:bold;">
+        ❌ Админ: Не авторизован
+    </div>
+
+    <!-- ВХОД/ВЫХОД АДМИНА -->
+    <div class="admin-inline" style="margin-bottom:12px;">
+        <button class="btn btn-primary" onclick="adminLogin()" style="flex:1;">🔑 Войти как админ</button>
+        <button class="btn btn-danger" onclick="adminLogout()" style="flex:1;">🚪 Выйти</button>
+    </div>
+
+    <hr class="admin-divider">
+
+    <div class="admin-group">
+        <label>Изменение цены предмета:</label>
+        <div class="admin-inline">
+            <select id="admin-market-skin-select"></select>
+            <input type="number" id="admin-market-price-input" placeholder="Новая цена (R)">
+            <button class="btn btn-success" onclick="adminUpdateMarketPrice()">Применить</button>
         </div>
-        <div class="admin-btn-group" style="margin-top: 10px;">
-            <button class="btn btn-primary" onclick="adminPumpAll(20)">🚀 Памп рынка (+20%)</button>
-            <button class="btn btn-danger" onclick="adminDumpAll(20)">📉 Дамп рынка (-20%)</button>
-        </div>
+    </div>
+
+    <div class="admin-btn-group" style="margin-top: 10px;">
+        <!-- СТАРЫЕ КНОПКИ (оставляем) -->
+        <button class="btn btn-primary" onclick="adminPumpAll(20)">🚀 Памп (+20%)</button>
+        <button class="btn btn-danger" onclick="adminDumpAll(20)">📉 Дамп (-20%)</button>
+    </div>
+
+    <div class="admin-btn-group" style="margin-top: 10px;">
+        <!-- НОВЫЕ КНОПКИ С СИНХРОНИЗАЦИЕЙ -->
+        <button class="btn btn-success" onclick="adminPumpAllWithSync(20)" style="background:#22c55e; flex:1;">
+            📈 +20% (Синхр.)
+        </button>
+        <button class="btn btn-danger" onclick="adminDumpAllWithSync(20)" style="flex:1;">
+            📉 -20% (Синхр.)
+        </button>
+    </div>
+
+    <div style="margin-top:10px; font-size:11px; color:#64748b; text-align:center;">
+        ⚡ Кнопки с "Синхр." сохраняют цены на сервер для всех пользователей
     </div>
 </div>
 <!-- ВСПЛЫВАЮЩЕЕ УВЕДОМЛЕНИЕ СПРАВА СБОКУ -->
