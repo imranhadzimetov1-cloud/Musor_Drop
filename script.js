@@ -1285,45 +1285,74 @@ function updateUI() {
     renderRarityStats();
 }
 
-// Пример: когда игрок зарабатывает очки
-let balance = 115;
+// ==========================================
+// ФИНАЛЬНАЯ ИНИЦИАЛИЗАЦИЯ
+// ==========================================
 
-function addPoints(points) {
-    balance += points;
-    // --- СОХРАНЯЕМ ДАННЫЕ ---
-    localStorage.setItem('userBalance', balance);
-    // ---
-    updateBalanceDisplay(); // обновляем интерфейс
-}
-
-// Пример: когда покупается скин
-function buySkin(skinId) {
-    // ... логика покупки
-    let ownedSkins = ['default']; // допустим, это массив
-    ownedSkins.push(skinId);
-    // --- СОХРАНЯЕМ ДАННЫЕ ---
-    localStorage.setItem('ownedSkins', JSON.stringify(ownedSkins));
-    // ---
-}
-
-// Выполняется при загрузке страницы
-window.addEventListener('DOMContentLoaded', (event) => {
-    // --- ЗАГРУЖАЕМ ДАННЫЕ ---
-    const savedBalance = localStorage.getItem('userBalance');
-    if (savedBalance !== null) {
-        balance = parseInt(savedBalance, 10);
+// Эта функция уже есть в коде, но мы убедимся, что все работает
+window.addEventListener('DOMContentLoaded', function() {
+    // Загружаем состояние из localStorage
+    loadState();
+    
+    // Рендерим все компоненты
+    renderCases();
+    renderShop();
+    renderLiveDrops();
+    renderFriends();
+    initPlayerId();
+    
+    // Проверяем админ-панель
+    if (sessionStorage.getItem('isAdminLoggedIn') === 'true') {
+        const panel = document.getElementById('admin-panel');
+        if (panel) panel.style.display = 'block';
+        populateAdminDropdowns();
     }
-
-    const savedSkins = localStorage.getItem('ownedSkins');
-    if (savedSkins !== null) {
-        ownedSkins = JSON.parse(savedSkins);
-    }
-    // ---
-
-    updateBalanceDisplay(); // обновляем интерфейс с загруженными данными
-    updateSkinsDisplay();
+    
+    // Дополнительная проверка: если есть сохраненные данные в старом формате,
+    // переносим их в новую систему
+    migrateOldData();
 });
 
+// Функция для переноса старых данных (если они есть)
+function migrateOldData() {
+    const oldBalance = localStorage.getItem('userBalance');
+    const oldSkins = localStorage.getItem('ownedSkins');
+    
+    if (oldBalance !== null && !localStorage.getItem('dropzone_state')) {
+        // Переносим старый баланс в новую систему
+        state.balance = parseInt(oldBalance, 10) || 115;
+        localStorage.removeItem('userBalance');
+    }
+    
+    if (oldSkins !== null && !localStorage.getItem('dropzone_state')) {
+        try {
+            const skins = JSON.parse(oldSkins);
+            if (Array.isArray(skins)) {
+                // Переносим скины в инвентарь
+                skins.forEach(skinId => {
+                    const skin = SKINS_DATABASE.find(s => s.id === skinId || s.id === parseInt(skinId));
+                    if (skin) {
+                        addItemToInventory(skin);
+                    }
+                });
+                localStorage.removeItem('ownedSkins');
+            }
+        } catch(e) {}
+    }
+    
+    saveState();
+}
+
+// Исправленная функция updateBalanceDisplay (если она есть)
+function updateBalanceDisplay() {
+    const el = document.getElementById('user-balance');
+    if (el) el.innerText = state.balance;
+}
+
+// Исправленная функция updateSkinsDisplay (если она есть)
+function updateSkinsDisplay() {
+    renderInventory();
+}
 
 
 
