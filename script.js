@@ -917,7 +917,7 @@ window.logoutAdmin = function() {
 // 16. САПЁР (С ВЫБОРОМ КОЛИЧЕСТВА)
 // ==========================================
 
-const SAPPER_MULTIPLIERS = [0, 0, 0, 2, 2, 3, 3, 5, 10];
+const SAPPER_MULTIPLIERS = [0, 0, 0, 0, 0, 2, 2, 3, 5,];
 let sapperGame = {
     selectedSkin: null,
     betAmount: 1,
