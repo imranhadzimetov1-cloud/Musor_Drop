@@ -1385,3 +1385,286 @@ document.addEventListener('DOMContentLoaded', function() {
     setTimeout(syncPricesOnLoad, 2000);
     updateAdminStatus();
 });
+
+// ==========================================
+// 20. ВКЛАДКА "КРАШ" (БИРЖА)
+// ==========================================
+
+let crashSortMode = 'price'; // price, change, name
+let crashSortDirection = 1; // 1 = asc, -1 = desc
+let crashIndexHistory = [];
+let crashTimer = 45;
+
+// ==========================================
+// 20.1. РЕНДЕР ТАБЛИЦЫ КРАШ
+// ==========================================
+
+function renderCrashTable() {
+    const tbody = document.getElementById('crash-table-body');
+    if (!tbody) return;
+
+    // Обновляем баланс и количество
+    const balanceEl = document.getElementById('crash-balance');
+    if (balanceEl) balanceEl.innerText = state.balance + ' R';
+    
+    const countEl = document.getElementById('crash-skin-count');
+    if (countEl) countEl.innerText = SKINS_DATABASE.length;
+
+    // Сортируем скины
+    let sorted = [...SKINS_DATABASE];
+    
+    switch(crashSortMode) {
+        case 'price':
+            sorted.sort((a, b) => (a.price - b.price) * crashSortDirection);
+            break;
+        case 'change':
+            sorted.sort((a, b) => {
+                const changeA = getPriceChangePercent(a);
+                const changeB = getPriceChangePercent(b);
+                return (changeA - changeB) * crashSortDirection;
+            });
+            break;
+        case 'name':
+            sorted.sort((a, b) => a.name.localeCompare(b.name) * crashSortDirection);
+            break;
+    }
+
+    // Находим топ изменения
+    let topGain = null;
+    let topLoss = null;
+    SKINS_DATABASE.forEach(s => {
+        const change = getPriceChangePercent(s);
+        if (change > 0 && (!topGain || change > getPriceChangePercent(topGain))) {
+            topGain = s;
+        }
+        if (change < 0 && (!topLoss || change < getPriceChangePercent(topLoss))) {
+            topLoss = s;
+        }
+    });
+
+    // Обновляем топы
+    const gainEl = document.getElementById('crash-top-gain');
+    const lossEl = document.getElementById('crash-top-loss');
+    if (gainEl && topGain) {
+        const change = getPriceChangePercent(topGain);
+        gainEl.textContent = `${topGain.name} +${change.toFixed(1)}% (${topGain.price} R)`;
+    }
+    if (lossEl && topLoss) {
+        const change = getPriceChangePercent(topLoss);
+        lossEl.textContent = `${topLoss.name} ${change.toFixed(1)}% (${topLoss.price} R)`;
+    }
+
+    // Рендерим таблицу
+    tbody.innerHTML = sorted.map(skin => {
+        const change = getPriceChangePercent(skin);
+        const changeColor = change > 0 ? '#22c55e' : (change < 0 ? '#ef4444' : '#64748b');
+        const changeIcon = change > 0 ? '📈' : (change < 0 ? '📉' : '➖');
+        const changeText = change > 0 ? `+${change.toFixed(1)}%` : (change < 0 ? `${change.toFixed(1)}%` : '0%');
+        const shortName = skin.name.includes('|') ? skin.name.split('|')[1].trim() : skin.name;
+
+        return `
+            <tr style="border-bottom: 1px solid #1e293b; transition: background 0.2s;" onmouseover="this.style.background='#1e293b'" onmouseout="this.style.background='transparent'">
+                <td style="padding: 8px 12px; display: flex; align-items: center; gap: 8px;">
+                    <img src="${skin.img}" style="width: 30px; height: 30px; object-fit: contain; border-radius: 4px;">
+                    <div>
+                        <div style="font-weight: 600; font-size: 12px;">${shortName}</div>
+                        <div style="font-size: 10px; color: #64748b;">${skin.weapon}</div>
+                    </div>
+                </td>
+                <td style="padding: 8px 12px; text-align: center; font-weight: 700; color: #f59e0b;">${skin.price} R</td>
+                <td style="padding: 8px 12px; text-align: center; color: ${changeColor}; font-weight: 600;">
+                    ${changeIcon} ${changeText}
+                </td>
+                <td style="padding: 8px 12px; text-align: center;">
+                    <button onclick="openPriceChart(${skin.id})" style="background: none; border: none; color: #f59e0b; cursor: pointer; font-size: 16px;">📊</button>
+                </td>
+            </tr>
+        `;
+    }).join('');
+
+    // Обновляем индекс
+    updateCrashIndex();
+}
+
+// ==========================================
+// 20.2. ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ
+// ==========================================
+
+function getPriceChangePercent(skin) {
+    if (!skin.priceHistory || skin.priceHistory.length < 2) return 0;
+    const oldPrice = skin.priceHistory[skin.priceHistory.length - 2]?.price || skin.price;
+    const currentPrice = skin.price;
+    if (oldPrice === 0) return 0;
+    return ((currentPrice - oldPrice) / oldPrice) * 100;
+}
+
+function sortCrashTable(mode) {
+    if (crashSortMode === mode) {
+        crashSortDirection *= -1;
+    } else {
+        crashSortMode = mode;
+        crashSortDirection = 1;
+    }
+    renderCrashTable();
+}
+
+// ==========================================
+// 20.3. БИРЖЕВОЙ ИНДЕКС (ГРАФИК)
+// ==========================================
+
+function updateCrashIndex() {
+    // Вычисляем среднюю цену всех скинов
+    const avgPrice = SKINS_DATABASE.reduce((sum, s) => sum + s.price, 0) / SKINS_DATABASE.length;
+    
+    // Добавляем в историю
+    crashIndexHistory.push({
+        price: avgPrice,
+        time: Date.now()
+    });
+    if (crashIndexHistory.length > 30) crashIndexHistory.shift();
+
+    // Обновляем значение
+    const indexEl = document.getElementById('crash-index-value');
+    if (indexEl) indexEl.textContent = Math.round(avgPrice) + ' R';
+
+    // Рисуем график индекса
+    drawCrashIndexChart();
+
+    // Обновляем таймер
+    const timerEl = document.getElementById('crash-timer');
+    if (timerEl) {
+        timerEl.textContent = `⏳ ${crashTimer}с`;
+        if (crashTimer <= 0) {
+            crashTimer = 45;
+        }
+    }
+}
+
+function drawCrashIndexChart() {
+    const canvas = document.getElementById('crashIndexChart');
+    if (!canvas) return;
+    
+    const ctx = canvas.getContext('2d');
+    const rect = canvas.parentElement.getBoundingClientRect();
+    const width = canvas.parentElement.clientWidth - 2;
+    const height = 150;
+    
+    canvas.width = width * 2;
+    canvas.height = height * 2;
+    canvas.style.width = width + 'px';
+    canvas.style.height = height + 'px';
+    ctx.scale(2, 2);
+    
+    if (crashIndexHistory.length < 2) {
+        ctx.fillStyle = '#64748b';
+        ctx.font = '14px Arial';
+        ctx.textAlign = 'center';
+        ctx.fillText('Нет данных для графика', width/2, height/2);
+        return;
+    }
+    
+    const data = crashIndexHistory;
+    const prices = data.map(d => d.price);
+    const minPrice = Math.min(...prices) * 0.95;
+    const maxPrice = Math.max(...prices) * 1.05;
+    const range = maxPrice - minPrice || 1;
+    
+    ctx.clearRect(0, 0, width, height);
+    
+    // Рисуем линию
+    const step = width / (data.length - 1);
+    const getY = (price) => height - ((price - minPrice) / range) * height * 0.9 - 10;
+    
+    const isUp = prices[prices.length - 1] >= prices[0];
+    
+    // Градиент
+    const gradient = ctx.createLinearGradient(0, 0, 0, height);
+    gradient.addColorStop(0, isUp ? 'rgba(34, 197, 94, 0.3)' : 'rgba(239, 68, 68, 0.3)');
+    gradient.addColorStop(1, 'rgba(34, 197, 94, 0)');
+    
+    ctx.beginPath();
+    ctx.moveTo(0, height);
+    data.forEach((d, i) => {
+        const x = i * step;
+        const y = getY(d.price);
+        if (i === 0) ctx.lineTo(x, y);
+        else ctx.lineTo(x, y);
+    });
+    ctx.lineTo(width, height);
+    ctx.closePath();
+    ctx.fillStyle = gradient;
+    ctx.fill();
+    
+    // Линия
+    ctx.beginPath();
+    data.forEach((d, i) => {
+        const x = i * step;
+        const y = getY(d.price);
+        if (i === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+    });
+    ctx.strokeStyle = isUp ? '#22c55e' : '#ef4444';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+    
+    // Последняя точка
+    const lastX = (data.length - 1) * step;
+    const lastY = getY(data[data.length - 1].price);
+    ctx.beginPath();
+    ctx.arc(lastX, lastY, 4, 0, 2 * Math.PI);
+    ctx.fillStyle = '#f59e0b';
+    ctx.fill();
+}
+
+// ==========================================
+// 20.4. ТАЙМЕР И АВТООБНОВЛЕНИЕ
+// ==========================================
+
+// Запускаем таймер для краша
+setInterval(() => {
+    crashTimer--;
+    const timerEl = document.getElementById('crash-timer');
+    if (timerEl) {
+        timerEl.textContent = `⏳ ${crashTimer}с`;
+        if (crashTimer <= 0) {
+            crashTimer = 45;
+            renderCrashTable();
+            const changeEl = document.getElementById('crash-index-change');
+            if (changeEl) changeEl.textContent = '🔄 Обновлено!';
+            setTimeout(() => {
+                if (changeEl) changeEl.textContent = 'Обновление...';
+            }, 2000);
+        }
+    }
+}, 1000);
+
+// Обновляем краш при переключении на вкладку
+document.querySelectorAll('.nav-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+        if (this.dataset.tab === 'crash') {
+            renderCrashTable();
+            updateCrashIndex();
+        }
+    });
+});
+
+// Инициализация краша при загрузке
+document.addEventListener('DOMContentLoaded', function() {
+    // ... существующий код ...
+    setTimeout(() => {
+        renderCrashTable();
+        updateCrashIndex();
+    }, 500);
+});
+
+// ==========================================
+// 20.5. АВТООБНОВЛЕНИЕ ЦЕН ДЛЯ КРАША
+// ==========================================
+
+// Переопределяем autoUpdatePrices чтобы обновлять краш
+const originalAutoUpdate = autoUpdatePrices;
+autoUpdatePrices = function() {
+    originalAutoUpdate();
+    renderCrashTable();
+    updateCrashIndex();
+};
