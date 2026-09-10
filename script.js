@@ -109,8 +109,8 @@ function generateXabibTexture() {
 const SKINS_DATABASE = [
     { id: 101, weapon: "P250", name: "P250 | Fallen", rarity: "COMMON", price: 3, img: "p250.png" },
     { id: 108, weapon: "Glock-18", name: "Glock-18 | Fade", rarity: "COMMON", price: 7, img: "glock-fade.png" },
-    { id: 111, weapon: "AK-47", name: "AK-47 | Jungle Diamond", rarity: "COMMON", price: 20, img: "ak-jungle.png" },
-    { id: 113, weapon: "M4A1-S", name: "M4A1-S | Mecha Industries", rarity: "COMMON", price: 450, img: "m4a1-mecha.png" },
+    { id: 111, weapon: "AK-47", name: "AK-47 | Jungle Diamond", rarity: "COMMON", price: 13, img: "ak-jungle.png" },
+    { id: 113, weapon: "M4A1-S", name: "M4A1-S | Mecha Industries", rarity: "COMMON", price: 14, img: "m4a1-mecha.png" },
     { id: 109, weapon: "USP-S", name: "USP-S | Printstream", rarity: "COMMON", price: 6, img: "usp-printstream.png" },
     { id: 103, weapon: "MP9", name: "MP9 | Starlight", rarity: "COMMON", price: 8, img: "mp9.png" },
     { id: 110, weapon: "P90", name: "P90 | Asiimov", rarity: "COMMON", price: 4, img: "p90-asiimov.png" },
