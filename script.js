@@ -72,10 +72,34 @@ function generateSkinTexture(weapon, skinName, rarity) {
 }
 
 // ==========================================
-// 3. ЯРКО-ЖЁЛТЫЙ XABIB
+// ЯРКО-ЖЁЛТЫЙ XABIB (С ОБЫЧНОЙ МОДЕЛЬКОЙ)
 // ==========================================
 function generateXabibTexture() {
-    const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" rx="12" fill="#ffd700"/><rect x="4" y="4" width="92" height="92" rx="8" fill="#ffed4a"/><text x="50" y="45" text-anchor="middle" font-size="30" fill="#000" font-weight="900">🥊</text><text x="50" y="75" text-anchor="middle" font-size="14" fill="#000" font-weight="900" letter-spacing="2">XABIB</text></svg>`;
+    // Используем такую же структуру, как у generateSkinTexture
+    const palette = { bg1: "#ffd700", bg2: "#ffed4a", pattern: "#b8860b" };
+    
+    // Диагональная сетка как у всех скинов
+    const patternSVG = `
+        <path d="M0 20 L20 0 M0 40 L40 0 M0 60 L60 0 M0 80 L80 0 M0 100 L100 0 M20 100 L100 20 M40 100 L100 40 M60 100 L100 60 M80 100 L100 80" 
+              stroke="${palette.pattern}" stroke-width="3" opacity="0.3"/>
+    `;
+
+    const svg = `
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100%" height="100%">
+        <defs>
+            <linearGradient id="skinGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="${palette.bg1}" />
+                <stop offset="100%" stop-color="${palette.bg2}" />
+            </linearGradient>
+        </defs>
+        <rect width="100" height="100" rx="8" fill="url(#skinGrad)" />
+        ${patternSVG}
+        <g fill="#000000" opacity="0.9" transform="translate(15, 30) scale(0.7)">
+            <path d="M5,25 L25,10 L75,10 L95,25 L85,35 L65,25 L35,25 L25,45 L10,40 Z"/>
+        </g>
+        <path d="M 0,0 L 100,0 L 0,100 Z" fill="#ffffff" opacity="0.15"/>
+    </svg>`.replace(/\n/g, '').replace(/\s+/g, ' ');
+
     return `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`;
 }
 
@@ -117,7 +141,7 @@ const SKINS_DATABASE = [
     { id: 95, weapon: "AK-47", name: "AK-47 | Case Hardened", rarity: "SECRET", price: 2100 },
     { id: 96, weapon: "★ Sport Gloves", name: "★ Sport Gloves | Vice", rarity: "SECRET", price: 7800 },
     // 👇 ЯРКО-ЖЁЛТЫЙ XABIB
-    { id: 97, weapon: "★ Xabib", name: "★ Xabib | TikTok", rarity: "SECRET", price: 50000, img: generateXabibTexture() }
+    { id: 97, weapon: "★ Xabib", name: "★ Xabib | TikTok", rarity: "SECRET", price: 99999, img: generateXabibTexture() }
 ];
 
 // Генерируем картинки для всех скинов (кроме Xabib, у него уже есть)
