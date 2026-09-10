@@ -168,25 +168,11 @@ function getRarityColor(rarity) {
 // ==========================================
 const CASES_DATABASE = [
     { 
-        id: "secret", 
-        name: "Secret Case", 
-        price: 5000, 
-        img: "images/secret.png",
-        items: SKINS_DATABASE.filter(s => s.rarity === "SECRET" || s.price > 300) 
-    },
-    { 
-        id: "legendary", 
-        name: "Legendary Case", 
-        price: 350, 
-        img: "images/legend.png",
-        items: SKINS_DATABASE.filter(s => ["LEGENDARY", "SECRET"].includes(s.rarity)) 
-    },
-    { 
-        id: "epic", 
-        name: "Epic Case", 
-        price: 120, 
-        img: "images/epic.png",
-        items: SKINS_DATABASE.filter(s => ["EPIC", "LEGENDARY"].includes(s.rarity)) 
+        id: "starter", 
+        name: "Starter Case", 
+        price: 15, 
+        img: "images/common.png",
+        items: SKINS_DATABASE.filter(s => ["COMMON", "RARE"].includes(s.rarity)) 
     },
     { 
         id: "weapon", 
@@ -196,14 +182,27 @@ const CASES_DATABASE = [
         items: SKINS_DATABASE.filter(s => ["RARE", "EPIC"].includes(s.rarity)) 
     },
     { 
-        id: "starter", 
-        name: "Starter Case", 
-        price: 15, 
-        img: "images/common.png",
-        items: SKINS_DATABASE.filter(s => ["COMMON", "RARE"].includes(s.rarity)) 
+        id: "epic", 
+        name: "Epic Case", 
+        price: 120, 
+        img: "images/epic.png",
+        items: SKINS_DATABASE.filter(s => ["EPIC", "LEGENDARY"].includes(s.rarity)) 
+    },
+    { 
+        id: "legendary", 
+        name: "Legendary Case", 
+        price: 350, 
+        img: "images/legend.png",
+        items: SKINS_DATABASE.filter(s => ["LEGENDARY", "SECRET"].includes(s.rarity)) 
+    },
+    { 
+        id: "secret", 
+        name: "Secret Case", 
+        price: 5000, 
+        img: "images/secret.png",
+        items: SKINS_DATABASE.filter(s => s.rarity === "SECRET" || s.price > 300) 
     }
 ];
-
 // ==========================================
 // 6. СОСТОЯНИЕ
 // ==========================================
