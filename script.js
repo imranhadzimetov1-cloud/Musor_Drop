@@ -164,14 +164,44 @@ function getRarityColor(rarity) {
 }
 
 // ==========================================
-// 5. БАЗА КЕЙСОВ
+// 5. БАЗА КЕЙСОВ С КАРТИНКАМИ
 // ==========================================
 const CASES_DATABASE = [
-    { id: "starter", name: "Starter Case", price: 15, items: SKINS_DATABASE.filter(s => ["COMMON", "RARE"].includes(s.rarity)) },
-    { id: "weapon", name: "Weapon Case", price: 50, items: SKINS_DATABASE.filter(s => ["RARE", "EPIC"].includes(s.rarity)) },
-    { id: "epic", name: "Epic Case", price: 120, items: SKINS_DATABASE.filter(s => ["EPIC", "LEGENDARY"].includes(s.rarity)) },
-    { id: "legendary", name: "Legendary Case", price: 350, items: SKINS_DATABASE.filter(s => ["LEGENDARY", "SECRET"].includes(s.rarity)) },
-    { id: "secret", name: "Secret Case", price: 5000, items: SKINS_DATABASE.filter(s => s.rarity === "SECRET" || s.price > 300) }
+    { 
+        id: "secret", 
+        name: "Secret Case", 
+        price: 5000, 
+        img: "images/secret.png",
+        items: SKINS_DATABASE.filter(s => s.rarity === "SECRET" || s.price > 300) 
+    },
+    { 
+        id: "legendary", 
+        name: "Legendary Case", 
+        price: 350, 
+        img: "images/legend.png",
+        items: SKINS_DATABASE.filter(s => ["LEGENDARY", "SECRET"].includes(s.rarity)) 
+    },
+    { 
+        id: "epic", 
+        name: "Epic Case", 
+        price: 120, 
+        img: "images/epic.png",
+        items: SKINS_DATABASE.filter(s => ["EPIC", "LEGENDARY"].includes(s.rarity)) 
+    },
+    { 
+        id: "weapon", 
+        name: "Weapon Case", 
+        price: 50, 
+        img: "images/rare.png",
+        items: SKINS_DATABASE.filter(s => ["RARE", "EPIC"].includes(s.rarity)) 
+    },
+    { 
+        id: "starter", 
+        name: "Starter Case", 
+        price: 15, 
+        img: "images/common.png",
+        items: SKINS_DATABASE.filter(s => ["COMMON", "RARE"].includes(s.rarity)) 
+    }
 ];
 
 // ==========================================
@@ -331,16 +361,13 @@ document.getElementById('add-balance-btn')?.addEventListener('click', () => {
     showToast("Баланс пополнен на 10 R!");
 });
 
-// ==========================================
-// 9. КЕЙСЫ
-// ==========================================
 function renderCases() {
     const container = document.getElementById('cases-grid');
     if (!container) return;
     container.innerHTML = CASES_DATABASE.map(c => `
         <div class="case-card">
             <div class="case-image-box">
-                <img src="${c.items[0]?.img || ''}" alt="${c.name}" style="max-height:100px; object-fit:contain;">
+                <img src="${c.img}" alt="${c.name}" style="max-height:140px; object-fit:contain;">
             </div>
             <h3>${c.name}</h3>
             <div class="case-price">${c.price} R</div>
