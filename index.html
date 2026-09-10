@@ -15,7 +15,6 @@
     <button class="nav-btn" data-tab="shop">Магазин</button>
     <button class="nav-btn" data-tab="inventory">Инвентарь (<span id="inv-count">0</span>)</button>
     <button class="nav-btn" data-tab="casino">🎰 Сапёр</button>
-    <button class="nav-btn" data-tab="crash">🚀 КРАШ</button>
     <button class="nav-btn" data-tab="profile">Профиль</button>
 </nav>
         <div class="user-balance-box">
@@ -219,83 +218,6 @@
 
     <!-- УВЕДОМЛЕНИЯ -->
     <div id="toast-container"></div>
-
-    <!-- ВКЛАДКА: КРАШ -->
-<section id="tab-crash" class="tab-content">
-    <h2 class="section-title">🚀 КРАШ (Биржа скинов)</h2>
-
-    <div style="background: linear-gradient(135deg, #1a1a2e, #16213e); border-radius: 16px; padding: 20px; margin-bottom: 20px; border: 1px solid #f59e0b;">
-        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
-            <div>
-                <div style="font-size: 14px; color: #94a3b8;">💰 Твой баланс</div>
-                <div style="font-size: 28px; font-weight: 800; color: #f59e0b;" id="crash-balance">0 R</div>
-            </div>
-            <div style="text-align: right;">
-                <div style="font-size: 14px; color: #94a3b8;">🔄 Автообновление</div>
-                <div style="font-size: 18px; font-weight: 800; color: #22c55e;" id="crash-timer">⏳ 45с</div>
-            </div>
-            <div style="text-align: right;">
-                <div style="font-size: 14px; color: #94a3b8;">📊 Всего скинов</div>
-                <div style="font-size: 24px; font-weight: 800; color: #4b69ff;" id="crash-skin-count">0</div>
-            </div>
-        </div>
-    </div>
-
-    <!-- ТОП ИЗМЕНЕНИЙ -->
-    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px;">
-        <div style="background: #1a1d27; border-radius: 12px; padding: 12px; border: 1px solid #22c55e;">
-            <div style="font-size: 11px; color: #94a3b8;">📈 САМЫЙ РОСТ</div>
-            <div id="crash-top-gain" style="font-size: 16px; font-weight: 700; color: #22c55e;">Загрузка...</div>
-        </div>
-        <div style="background: #1a1d27; border-radius: 12px; padding: 12px; border: 1px solid #ef4444;">
-            <div style="font-size: 11px; color: #94a3b8;">📉 САМОЕ ПАДЕНИЕ</div>
-            <div id="crash-top-loss" style="font-size: 16px; font-weight: 700; color: #ef4444;">Загрузка...</div>
-        </div>
-    </div>
-
-    <!-- ГРАФИК БИРЖИ -->
-    <div style="background: #1a1d27; border-radius: 12px; padding: 16px; border: 1px solid #2a2d3a; margin-bottom: 16px;">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-            <div style="font-size: 14px; font-weight: 600; color: #fff;">📊 БИРЖЕВОЙ ИНДЕКС</div>
-            <div style="font-size: 12px; color: #64748b;" id="crash-index-change">Обновление...</div>
-        </div>
-        <canvas id="crashIndexChart" style="width: 100%; height: 150px; background: #0f1117; border-radius: 8px;"></canvas>
-        <div style="display: flex; justify-content: space-between; margin-top: 6px; font-size: 10px; color: #64748b;">
-            <span>Индекс рынка</span>
-            <span id="crash-index-value">0</span>
-        </div>
-    </div>
-
-    <!-- ВСЕ СКИНЫ НА БИРЖЕ -->
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-        <h3 style="font-size: 16px;">📦 ВСЕ СКИНЫ НА БИРЖЕ</h3>
-        <div style="display: flex; gap: 6px;">
-            <button onclick="sortCrashTable('price')" style="background: #1e293b; border: 1px solid #334155; color: #94a3b8; padding: 4px 10px; border-radius: 4px; cursor: pointer; font-size: 10px;">💰 Цена</button>
-            <button onclick="sortCrashTable('change')" style="background: #1e293b; border: 1px solid #334155; color: #94a3b8; padding: 4px 10px; border-radius: 4px; cursor: pointer; font-size: 10px;">📊 Изменение</button>
-            <button onclick="sortCrashTable('name')" style="background: #1e293b; border: 1px solid #334155; color: #94a3b8; padding: 4px 10px; border-radius: 4px; cursor: pointer; font-size: 10px;">🔤 Имя</button>
-        </div>
-    </div>
-
-    <!-- ТАБЛИЦА СКИНОВ -->
-    <div id="crash-table-container" style="background: #1a1d27; border-radius: 12px; border: 1px solid #2a2d3a; overflow: hidden; max-height: 500px; overflow-y: auto;">
-        <table id="crash-table" style="width: 100%; border-collapse: collapse; font-size: 13px;">
-            <thead style="background: #0f1117; position: sticky; top: 0; z-index: 5;">
-                <tr>
-                    <th style="padding: 10px 12px; text-align: left; color: #8a99ad; font-weight: 600; border-bottom: 1px solid #2a2d3a;">Скин</th>
-                    <th style="padding: 10px 12px; text-align: center; color: #8a99ad; font-weight: 600; border-bottom: 1px solid #2a2d3a;">Цена</th>
-                    <th style="padding: 10px 12px; text-align: center; color: #8a99ad; font-weight: 600; border-bottom: 1px solid #2a2d3a;">Изменение</th>
-                    <th style="padding: 10px 12px; text-align: center; color: #8a99ad; font-weight: 600; border-bottom: 1px solid #2a2d3a;">График</th>
-                </tr>
-            </thead>
-            <tbody id="crash-table-body"></tbody>
-        </table>
-    </div>
-
-    <div style="margin-top: 10px; font-size: 11px; color: #64748b; text-align: center;">
-        ⏳ Цены обновляются автоматически каждые 45 секунд
-    </div>
-</section>
-
     <!-- АДМИН-ПАНЕЛЬ -->
     <div class="admin-container" style="margin-bottom: 10px;">
         <h3>🔒 Вход в Панель Администратора</h3>
