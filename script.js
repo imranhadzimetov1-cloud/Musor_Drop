@@ -167,11 +167,41 @@ function getRarityColor(rarity) {
 // 5. БАЗА КЕЙСОВ С КАРТИНКАМИ
 // ==========================================
 const CASES_DATABASE = [
-    { id: "starter", name: "Starter Case", price: 15, img: "image/common.webp", items: SKINS_DATABASE.filter(s => ["COMMON", "RARE"].includes(s.rarity)) },
-    { id: "weapon", name: "Weapon Case", price: 50, img: "image/rare.webp", items: SKINS_DATABASE.filter(s => ["RARE", "EPIC"].includes(s.rarity)) },
-    { id: "epic", name: "Epic Case", price: 120, img: "image/epic.webp", items: SKINS_DATABASE.filter(s => ["EPIC", "LEGENDARY"].includes(s.rarity)) },
-    { id: "legendary", name: "Legendary Case", price: 350, img: "image/legend.webp", items: SKINS_DATABASE.filter(s => ["LEGENDARY", "SECRET"].includes(s.rarity)) },
-    { id: "secret", name: "Secret Case", price: 5000, img: "image/secret.webp", items: SKINS_DATABASE.filter(s => s.rarity === "SECRET" || s.price > 300) }
+    { 
+        id: "starter", 
+        name: "Starter Case", 
+        price: 15, 
+        img: "common.webp",
+        items: SKINS_DATABASE.filter(s => ["COMMON", "RARE"].includes(s.rarity)) 
+    },
+    { 
+        id: "weapon", 
+        name: "Weapon Case", 
+        price: 50, 
+        img: "rare.webp",
+        items: SKINS_DATABASE.filter(s => ["RARE", "EPIC"].includes(s.rarity)) 
+    },
+    { 
+        id: "epic", 
+        name: "Epic Case", 
+        price: 120, 
+        img: "epic.webp",
+        items: SKINS_DATABASE.filter(s => ["EPIC", "LEGENDARY"].includes(s.rarity)) 
+    },
+    { 
+        id: "legendary", 
+        name: "Legendary Case", 
+        price: 350, 
+        img: "legend.webp",
+        items: SKINS_DATABASE.filter(s => ["LEGENDARY", "SECRET"].includes(s.rarity)) 
+    },
+    { 
+        id: "secret", 
+        name: "Secret Case", 
+        price: 5000, 
+        img: "secret.webp",
+        items: SKINS_DATABASE.filter(s => s.rarity === "SECRET" || s.price > 300) 
+    }
 ];
 // ==========================================
 // 6. СОСТОЯНИЕ
