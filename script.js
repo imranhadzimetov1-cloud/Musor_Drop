@@ -133,7 +133,7 @@ const SKINS_DATABASE = [
     { id: 52, weapon: "Desert Eagle", name: "Desert Eagle | Printstream", rarity: "LEGENDARY", price: 450 },
     { id: 53, weapon: "M4A1-S", name: "M4A1-S | Player Two", rarity: "LEGENDARY", price: 410 },
     { id: 54, weapon: "AK-47", name: "AK-47 | Bloodsport", rarity: "LEGENDARY", price: 520 },
-    { id: 104, weapon: "USP-S", name: "USP-S | Forest DDPAT", rarity: "LEGENDARY", price: 600, img: "iusp.png" },
+    { id: 104, weapon: "USP-S", name: "USP-S | Forest DDPAT", rarity: "LEGENDARY", price: 600, img: "usp.png" },
     { id: 107, weapon: "★ Karambit", name: "★ Karambit | Fade", rarity: "SECRET", price: 4500, img: "karambit.png" },
     { id: 105, weapon: "AWP", name: "AWP | Dragon Lore", rarity: "SECRET", price: 8500, img: "awp.png" },
     { id: 93, weapon: "★ Butterfly Knife", name: "★ Butterfly Knife | Doppler", rarity: "SECRET", price: 9200 },
