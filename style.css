@@ -1130,3 +1130,51 @@ body {
         width: 120px;
     }
 }
+
+
+/* ==========================================
+   ОБНОВЛЕНИЕ КАРТОЧЕК КЕЙСОВ
+   ========================================== */
+.case-image-box {
+    height: 160px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 10px;
+}
+
+.case-image-box img {
+    max-height: 150px;
+    max-width: 100%;
+    object-fit: contain;
+    filter: drop-shadow(0 10px 20px rgba(0,0,0,0.5));
+    transition: transform 0.3s ease;
+}
+
+.case-card:hover .case-image-box img {
+    transform: scale(1.05);
+}
+
+.case-card h3 {
+    font-size: 16px;
+    margin: 8px 0;
+    font-weight: 700;
+}
+
+@media (max-width: 768px) {
+    .case-image-box {
+        height: 120px;
+    }
+    .case-image-box img {
+        max-height: 110px;
+    }
+}
+
+@media (max-width: 480px) {
+    .case-image-box {
+        height: 100px;
+    }
+    .case-image-box img {
+        max-height: 90px;
+    }
+}
