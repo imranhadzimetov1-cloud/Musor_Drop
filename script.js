@@ -507,8 +507,19 @@ document.getElementById('modal-close-btn')?.addEventListener('click', () => {
 
 function buildRouletteTrack() {
     const track = document.getElementById('roulette-track');
+    if (!track) return;
+    
     track.style.transition = 'none';
     track.style.transform = 'translateX(0)';
+    track.style.display = 'flex';
+
+    // Определяем ширину карточки в зависимости от экрана
+    const isMobile = window.innerWidth <= 768;
+    const isSmallMobile = window.innerWidth <= 480;
+    
+    let cardWidth = 140; // desktop
+    if (isSmallMobile) cardWidth = 85;
+    else if (isMobile) cardWidth = 100;
 
     const items = [];
     for (let i = 0; i < 80; i++) {
@@ -519,14 +530,17 @@ function buildRouletteTrack() {
     items[65] = winningSkin;
 
     track.innerHTML = items.map(s => `
-        <div class="roulette-card rarity-${s.rarity}">
-            <div style="font-size:9px; color:#8a99ad;">${s.weapon}</div>
-            <div style="font-weight:bold; margin: 4px 0; font-size:10px;">${s.name.split('|')[1] || s.name}</div>
-            <img src="${s.img}" style="max-height:60px; object-fit:contain;">
+        <div class="roulette-card rarity-${s.rarity}" style="min-width: ${cardWidth}px; max-width: ${cardWidth}px;">
+            <div style="font-size:9px; color:#8a99ad; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:100%;">${s.weapon}</div>
+            <div style="font-weight:bold; margin: 4px 0; font-size:10px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:100%;">${s.name.split('|')[1] || s.name}</div>
+            <img src="${s.img}" alt="${s.name}" style="max-height:60px; object-fit:contain;">
         </div>
     `).join('');
 
-    setTimeout(startSpin, 300);
+    // Сохраняем ширину карточки для дальнейшего использования
+    track.dataset.cardWidth = cardWidth;
+
+    setTimeout(() => startSpin(), 300);
 }
 
 function startSpin() {
@@ -538,9 +552,16 @@ function startSpin() {
     saveState();
 
     const track = document.getElementById('roulette-track');
-    const cardWidth = 140;
-    const targetOffset = -(65 * cardWidth - (document.querySelector('.roulette-container')?.offsetWidth / 2 || 300) + (cardWidth / 2));
-    const randomOffset = Math.floor(Math.random() * 80) - 40;
+    const container = document.querySelector('.roulette-container');
+    if (!track || !container) return;
+    
+    const containerWidth = container.offsetWidth;
+    const cardWidth = parseFloat(track.dataset.cardWidth) || 140;
+    const targetIndex = 65;
+    
+    // Центрируем карточку с выигрышем
+    const targetOffset = -(targetIndex * (cardWidth + 8) - (containerWidth / 2) + (cardWidth / 2));
+    const randomOffset = (Math.random() * cardWidth * 0.6) - (cardWidth * 0.3);
     const finalTransform = targetOffset + randomOffset;
 
     track.style.transition = 'transform 6s cubic-bezier(0.15, 0.9, 0.2, 1)';
