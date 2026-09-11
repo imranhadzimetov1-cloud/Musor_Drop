@@ -136,10 +136,10 @@ const SKINS_DATABASE = [
     { id: 104, weapon: "USP-S", name: "USP-S | Forest DDPAT", rarity: "LEGENDARY", price: 600, img: "usp.png" },
     { id: 107, weapon: "★ Karambit", name: "★ Karambit | Fade", rarity: "SECRET", price: 4500, img: "karambit.png" },
     { id: 105, weapon: "AWP", name: "AWP | Dragon Lore", rarity: "SECRET", price: 8500, img: "awp.png" },
-    { id: 93, weapon: "★ Butterfly Knife", name: "★ Butterfly Knife | Doppler", rarity: "SECRET", price: 9200 },
+    { id: 93, weapon: "★ Butterfly Knife", name: "★ Butterfly Knife | Doppler", rarity: "SECRET", price: 9200, img: "butterfly-gamma.png" },
     { id: 106, weapon: "★ M9 Bayonet", name: "★ M9 Bayonet | Blue Steel", rarity: "SECRET", price: 6100, img: "m9.png" },
-    { id: 95, weapon: "AK-47", name: "AK-47 | Case Hardened", rarity: "SECRET", price: 2100 },
-    { id: 96, weapon: "★ Sport Gloves", name: "★ Sport Gloves | Vice", rarity: "SECRET", price: 7800 },
+    { id: 95, weapon: "AK-47", name: "AK-47 | Case Hardened", rarity: "SECRET", price: 2100, img: "ak-case-hardened.png" },
+    { id: 96, weapon: "★ Sport Gloves", name: "★ Sport Gloves | Vice", rarity: "SECRET", price: 7800, img: "sport-gloves-vice.png" },
     // 👇 ЯРКО-ЖЁЛТЫЙ XABIB
     { id: 97, weapon: "★ Xabib", name: "★ Xabib | TikTok", rarity: "SECRET", price: 99999, img: generateXabibTexture() }
 ];
