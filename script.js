@@ -549,6 +549,10 @@ document.getElementById('modal-close-btn')?.addEventListener('click', () => {
     document.getElementById('roulette-modal').classList.remove('active');
 });
 
+// ==========================================
+// РУЛЕТКА КЕЙСОВ — ЧЕСТНАЯ ВЕРСИЯ
+// ==========================================
+
 function buildRouletteTrack() {
     const track = document.getElementById('roulette-track');
     if (!track) return;
@@ -557,33 +561,60 @@ function buildRouletteTrack() {
     track.style.transform = 'translateX(0)';
     track.style.display = 'flex';
 
-    // Определяем ширину карточки в зависимости от экрана
     const isMobile = window.innerWidth <= 768;
     const isSmallMobile = window.innerWidth <= 480;
     
-    let cardWidth = 140; // desktop
+    let cardWidth = 140;
     if (isSmallMobile) cardWidth = 85;
     else if (isMobile) cardWidth = 100;
 
+    // СНАЧАЛА выбираем выигрышный скин
+    winningSkin = getRandomSkinByChance(currentSpinCase.items);
+    console.log('🎯 ВЫИГРЫШНЫЙ СКИН:', winningSkin.name);
+
+    // Создаём ленту из 80 случайных скинов
     const items = [];
     for (let i = 0; i < 80; i++) {
         items.push(currentSpinCase.items[Math.floor(Math.random() * currentSpinCase.items.length)]);
     }
-
-    winningSkin = getRandomSkinByChance(currentSpinCase.items);
+    
+    // ВСТАВЛЯЕМ выигрышный скин на позицию 65 (там остановится)
     items[65] = winningSkin;
 
-track.innerHTML = items.map(s => `
-    <div class="roulette-card rarity-${s.rarity}">
-        <div style="font-size:9px; color:#8a99ad;">${s.weapon}</div>
-        <div style="font-weight:bold; margin: 4px 0; font-size:10px;">${s.name.split('|')[1] || s.name}</div>
-        <img src="${s.img}" style="max-height:60px; object-fit:contain;">
-    </div>
-`).join('');
+    const getRarityBorder = (rarity) => {
+        switch(rarity) {
+            case 'COMMON': return '#b0c3d9';
+            case 'RARE': return '#4b69ff';
+            case 'EPIC': return '#8847ff';
+            case 'LEGENDARY': return '#d32ce6';
+            case 'SECRET': return '#eb4b4b';
+            default: return '#666';
+        }
+    };
 
-    // Сохраняем ширину карточки для дальнейшего использования
+    track.innerHTML = items.map(s => {
+        const borderColor = getRarityBorder(s.rarity);
+        return `
+            <div class="roulette-card" style="
+                min-width: ${cardWidth}px;
+                max-width: ${cardWidth}px;
+                border-bottom: 4px solid ${borderColor};
+                background: linear-gradient(180deg, ${borderColor}15 0%, #1a1d27 100%);
+                position: relative;
+                overflow: hidden;
+            ">
+                <div style="font-size:9px; color:#8a99ad;">${s.weapon}</div>
+                <div style="font-weight:bold; margin: 4px 0; font-size:10px; color: ${borderColor};">${s.name.split('|')[1] || s.name}</div>
+                <img src="${s.img}" style="max-height:60px; object-fit:contain;">
+            </div>
+        `;
+    }).join('');
+
+    // Сохраняем параметры для startSpin
     track.dataset.cardWidth = cardWidth;
-
+    track.dataset.winningIndex = 65;
+    track.dataset.totalCards = 80;
+    
     setTimeout(() => startSpin(), 300);
 }
 
@@ -599,14 +630,23 @@ function startSpin() {
     const container = document.querySelector('.roulette-container');
     if (!track || !container) return;
     
-    const containerWidth = container.offsetWidth;
     const cardWidth = parseFloat(track.dataset.cardWidth) || 140;
-    const targetIndex = 65;
+    const winningIndex = parseInt(track.dataset.winningIndex) || 65;
+    const containerWidth = container.offsetWidth;
     
-    // Центрируем карточку с выигрышем
-    const targetOffset = -(targetIndex * (cardWidth + 8) - (containerWidth / 2) + (cardWidth / 2));
-    const randomOffset = (Math.random() * cardWidth * 0.6) - (cardWidth * 0.3);
+    // Полная ширина карточки (с отступами)
+    const fullCardWidth = cardWidth + 8;
+    
+    // Центрируем winning карточку (индекс 65)
+    // Формула: смещение = -(winningIndex * fullCardWidth + fullCardWidth/2) + containerWidth/2
+    const centerOffset = winningIndex * fullCardWidth + (fullCardWidth / 2);
+    const targetOffset = -(centerOffset - (containerWidth / 2));
+    
+    // Небольшое случайное отклонение (для реалистичности)
+    const randomOffset = (Math.random() - 0.5) * (cardWidth * 0.5);
     const finalTransform = targetOffset + randomOffset;
+
+    console.log('🎯 Позиция остановки:', targetOffset, 'px');
 
     track.style.transition = 'transform 6s cubic-bezier(0.15, 0.9, 0.2, 1)';
     track.style.transform = `translateX(${finalTransform}px)`;
