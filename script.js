@@ -355,12 +355,6 @@ function showToast(msg) {
     setTimeout(() => toast.remove(), 3000);
 }
 
-document.getElementById('add-balance-btn')?.addEventListener('click', () => {
-    state.balance += 10;
-    saveState();
-    showToast("Баланс пополнен на 10 R!");
-});
-
 function renderCases() {
     const container = document.getElementById('cases-grid');
     if (!container) return;
