@@ -415,25 +415,31 @@ function renderShop() {
         }
 
         return `
-            <div class="skin-card rarity-${s.rarity}" onclick="openSkinView(${s.id})" style="cursor:pointer;">
+            <div class="skin-card rarity-${s.rarity}">
                 <div class="skin-weapon">${s.weapon}</div>
                 <div class="skin-title">${s.name.includes('|') ? s.name.split('|')[1] : s.name}</div>
                 <div class="skin-img-box">
-                    <img src="${s.img}" alt="${s.name}" loading="lazy" style="max-width:100%; max-height:80px; object-fit:contain;">
+                    <img src="${s.img}" alt="${s.name}" style="max-width:100%; max-height:80px; object-fit:contain;">
                 </div>
-                <div class="skin-price" style="display:flex; justify-content:center; align-items:center; gap:6px; flex-wrap:wrap;">
+                <div class="skin-price" style="display:flex; justify-content:center; align-items:center; gap:6px;">
                     <span>${s.price} R</span>
                     ${trendHTML}
                 </div>
-                <div style="display:flex; gap:4px; margin-top:6px;">
-                    <button type="button" class="btn" style="flex:1; padding:6px; font-size:10px; background:#4b69ff;" onclick="event.stopPropagation(); window.buySkin(${s.id})">КУПИТЬ</button>
-                    <button type="button" class="btn" style="flex:0 0 auto; padding:6px 10px; font-size:10px; background:#22c55e; color:#fff;" onclick="event.stopPropagation(); openSkinView(${s.id})" title="Осмотреть">👁️</button>
-                </div>
+                <button type="button" class="btn" style="margin-top:8px; padding:6px; font-size:11px; width:100%; background:#4b69ff; cursor:pointer;" onclick="window.buySkin(${s.id})">КУПИТЬ</button>
             </div>
         `;
     }).join('');
 }
 
+document.getElementById('shop-search')?.addEventListener('input', renderShop);
+document.getElementById('shop-sort')?.addEventListener('change', renderShop);
+document.querySelectorAll('.filter-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+        document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        renderShop();
+    });
+});
 // ==========================================
 // 10. ИНВЕНТАРЬ
 // ==========================================
@@ -451,22 +457,56 @@ function renderInventory() {
         const livePrice = marketSkin ? marketSkin.price : item.price;
 
         return `
-            <div class="skin-card rarity-${item.rarity}" onclick="openSkinView(${item.id})" style="cursor:pointer;">
+            <div class="skin-card rarity-${item.rarity}">
                 ${item.count > 1 ? `<div class="skin-count">x${item.count}</div>` : ''}
                 <div class="skin-weapon">${item.weapon}</div>
                 <div class="skin-title">${item.name.includes('|') ? item.name.split('|')[1] : item.name}</div>
                 <div class="skin-img-box">
-                    <img src="${item.img}" alt="${item.name}" loading="lazy" style="max-width:100%; max-height:80px; object-fit:contain;">
+                    <img src="${item.img}" alt="${item.name}" style="max-width:100%; max-height:80px; object-fit:contain;">
                 </div>
                 <div class="skin-price" style="color: #22c55e; font-weight: bold;">${livePrice} R</div>
-                <div style="display:flex; gap:4px; margin-top:6px;">
-                    <button type="button" class="btn btn-danger" style="flex:1; padding:6px; font-size:10px;" onclick="event.stopPropagation(); window.sellSkin(${item.id})">ПРОДАТЬ</button>
-                    <button type="button" class="btn" style="flex:0 0 auto; padding:6px 10px; font-size:10px; background:#22c55e; color:#fff;" onclick="event.stopPropagation(); openSkinView(${item.id})" title="Осмотреть">👁️</button>
-                </div>
+                <button type="button" class="btn btn-danger" style="margin-top:8px; padding:6px; font-size:11px; width:100%; cursor:pointer;" onclick="window.sellSkin(${item.id})">ПРОДАТЬ</button>
             </div>
         `;
     }).join('');
 }
+
+window.sellSkin = function(skinId) {
+    if (!state.inventory || state.inventory.length === 0) return;
+
+    const itemIndex = state.inventory.findIndex(i => Number(i.id) === Number(skinId));
+    if (itemIndex === -1) {
+        showToast("Скин не найден!");
+        return;
+    }
+
+    const inventoryItem = state.inventory[itemIndex];
+    const marketSkin = SKINS_DATABASE.find(s => Number(s.id) === Number(skinId));
+    const currentMarketPrice = marketSkin ? marketSkin.price : inventoryItem.price;
+
+    state.balance += currentMarketPrice;
+
+    if (inventoryItem.count && inventoryItem.count > 1) {
+        inventoryItem.count -= 1;
+    } else {
+        state.inventory.splice(itemIndex, 1);
+    }
+
+    saveState();
+    showToast(`Продано за ${currentMarketPrice} R`);
+};
+
+document.getElementById('sell-all-btn')?.addEventListener('click', () => {
+    if (state.inventory.length === 0) return;
+    const totalSum = state.inventory.reduce((acc, item) => acc + (item.price * item.count), 0);
+    if (confirm(`Продать всё за ${totalSum} R?`)) {
+        state.balance += totalSum;
+        state.inventory = [];
+        saveState();
+        showToast(`Все проданы за ${totalSum} R`);
+    }
+});
+
 // ==========================================
 // 11. ОТКРЫТИЕ КЕЙСА
 // ==========================================
