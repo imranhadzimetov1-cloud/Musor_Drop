@@ -194,7 +194,11 @@ const CASES_DATABASE = [
         name: "Legendary Case", 
         price: 350, 
         img: "legend.webp",
-        items: SKINS_DATABASE.filter(s => s.rarity === "LEGENDARY")  // ← ТОЛЬКО ЛЕГЕНДАРКИ
+        // LEGENDARY скины + 2 конкретные секретки (AK-47 и Керамбит)
+        items: SKINS_DATABASE.filter(s => 
+            s.rarity === "LEGENDARY" || 
+            (s.rarity === "SECRET" && (s.id === 95 || s.id === 107))
+        )
     },
     { 
         id: "secret", 
