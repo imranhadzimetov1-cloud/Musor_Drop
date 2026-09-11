@@ -415,31 +415,24 @@ function renderShop() {
         }
 
         return `
-            <div class="skin-card rarity-${s.rarity}">
+            <div class="skin-card rarity-${s.rarity}" onclick="openSkinView(${s.id})" style="cursor:pointer;">
                 <div class="skin-weapon">${s.weapon}</div>
                 <div class="skin-title">${s.name.includes('|') ? s.name.split('|')[1] : s.name}</div>
                 <div class="skin-img-box">
-                    <img src="${s.img}" alt="${s.name}" style="max-width:100%; max-height:80px; object-fit:contain;">
+                    <img src="${s.img}" alt="${s.name}" loading="lazy" style="max-width:100%; max-height:80px; object-fit:contain;">
                 </div>
-                <div class="skin-price" style="display:flex; justify-content:center; align-items:center; gap:6px;">
+                <div class="skin-price" style="display:flex; justify-content:center; align-items:center; gap:6px; flex-wrap:wrap;">
                     <span>${s.price} R</span>
                     ${trendHTML}
                 </div>
-                <button type="button" class="btn" style="margin-top:8px; padding:6px; font-size:11px; width:100%; background:#4b69ff; cursor:pointer;" onclick="window.buySkin(${s.id})">КУПИТЬ</button>
+                <div style="display:flex; gap:4px; margin-top:6px;">
+                    <button type="button" class="btn" style="flex:1; padding:6px; font-size:10px; background:#4b69ff;" onclick="event.stopPropagation(); window.buySkin(${s.id})">КУПИТЬ</button>
+                    <button type="button" class="btn" style="flex:0 0 auto; padding:6px 10px; font-size:10px; background:#22c55e; color:#fff;" onclick="event.stopPropagation(); openSkinView(${s.id})" title="Осмотреть">👁️</button>
+                </div>
             </div>
         `;
     }).join('');
 }
-
-document.getElementById('shop-search')?.addEventListener('input', renderShop);
-document.getElementById('shop-sort')?.addEventListener('change', renderShop);
-document.querySelectorAll('.filter-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-        document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        renderShop();
-    });
-});
 
 // ==========================================
 // 10. ИНВЕНТАРЬ
@@ -458,56 +451,22 @@ function renderInventory() {
         const livePrice = marketSkin ? marketSkin.price : item.price;
 
         return `
-            <div class="skin-card rarity-${item.rarity}">
+            <div class="skin-card rarity-${item.rarity}" onclick="openSkinView(${item.id})" style="cursor:pointer;">
                 ${item.count > 1 ? `<div class="skin-count">x${item.count}</div>` : ''}
                 <div class="skin-weapon">${item.weapon}</div>
                 <div class="skin-title">${item.name.includes('|') ? item.name.split('|')[1] : item.name}</div>
                 <div class="skin-img-box">
-                    <img src="${item.img}" alt="${item.name}" style="max-width:100%; max-height:80px; object-fit:contain;">
+                    <img src="${item.img}" alt="${item.name}" loading="lazy" style="max-width:100%; max-height:80px; object-fit:contain;">
                 </div>
                 <div class="skin-price" style="color: #22c55e; font-weight: bold;">${livePrice} R</div>
-                <button type="button" class="btn btn-danger" style="margin-top:8px; padding:6px; font-size:11px; width:100%; cursor:pointer;" onclick="window.sellSkin(${item.id})">ПРОДАТЬ</button>
+                <div style="display:flex; gap:4px; margin-top:6px;">
+                    <button type="button" class="btn btn-danger" style="flex:1; padding:6px; font-size:10px;" onclick="event.stopPropagation(); window.sellSkin(${item.id})">ПРОДАТЬ</button>
+                    <button type="button" class="btn" style="flex:0 0 auto; padding:6px 10px; font-size:10px; background:#22c55e; color:#fff;" onclick="event.stopPropagation(); openSkinView(${item.id})" title="Осмотреть">👁️</button>
+                </div>
             </div>
         `;
     }).join('');
 }
-
-window.sellSkin = function(skinId) {
-    if (!state.inventory || state.inventory.length === 0) return;
-
-    const itemIndex = state.inventory.findIndex(i => Number(i.id) === Number(skinId));
-    if (itemIndex === -1) {
-        showToast("Скин не найден!");
-        return;
-    }
-
-    const inventoryItem = state.inventory[itemIndex];
-    const marketSkin = SKINS_DATABASE.find(s => Number(s.id) === Number(skinId));
-    const currentMarketPrice = marketSkin ? marketSkin.price : inventoryItem.price;
-
-    state.balance += currentMarketPrice;
-
-    if (inventoryItem.count && inventoryItem.count > 1) {
-        inventoryItem.count -= 1;
-    } else {
-        state.inventory.splice(itemIndex, 1);
-    }
-
-    saveState();
-    showToast(`Продано за ${currentMarketPrice} R`);
-};
-
-document.getElementById('sell-all-btn')?.addEventListener('click', () => {
-    if (state.inventory.length === 0) return;
-    const totalSum = state.inventory.reduce((acc, item) => acc + (item.price * item.count), 0);
-    if (confirm(`Продать всё за ${totalSum} R?`)) {
-        state.balance += totalSum;
-        state.inventory = [];
-        saveState();
-        showToast(`Все проданы за ${totalSum} R`);
-    }
-});
-
 // ==========================================
 // 11. ОТКРЫТИЕ КЕЙСА
 // ==========================================
@@ -1456,6 +1415,138 @@ async function syncPricesOnLoad() {
 document.addEventListener('DOMContentLoaded', function() {
     setTimeout(syncPricesOnLoad, 2000);
     updateAdminStatus();
+});
+
+// ==========================================
+// 22. ПРОСМОТР СКИНА (КНОПКА "ОСМОТРЕТЬ")
+// ==========================================
+
+// Открытие модального окна скина
+window.openSkinView = function(skinId) {
+    const skin = SKINS_DATABASE.find(s => s.id === skinId);
+    if (!skin) {
+        showToast('❌ Скин не найден!');
+        return;
+    }
+    
+    // Создаём модалку, если её нет
+    let modal = document.getElementById('skin-view-modal');
+    if (!modal) {
+        modal = document.createElement('div');
+        modal.id = 'skin-view-modal';
+        modal.className = 'modal';
+        modal.innerHTML = `
+            <div class="modal-content" style="max-width: 700px;">
+                <button class="modal-close" onclick="closeSkinView()">&times;</button>
+                <div id="skin-view-content"></div>
+            </div>
+        `;
+        document.body.appendChild(modal);
+        
+        // Закрытие по клику на фон
+        modal.addEventListener('click', function(e) {
+            if (e.target === modal) closeSkinView();
+        });
+    }
+    
+    // Заполняем контент
+    const content = document.getElementById('skin-view-content');
+    const rarityColor = getRarityColor(skin.rarity);
+    const shortName = skin.name.includes('|') ? skin.name.split('|')[1].trim() : skin.name;
+    
+    // Получаем историю цены
+    let priceHistoryHTML = '';
+    if (skin.priceHistory && skin.priceHistory.length >= 2) {
+        const oldPrice = skin.priceHistory[skin.priceHistory.length - 2].price;
+        const change = ((skin.price - oldPrice) / oldPrice * 100).toFixed(1);
+        const isUp = change > 0;
+        priceHistoryHTML = `
+            <div style="display:flex; align-items:center; gap:8px; margin-top:6px;">
+                <span style="font-size:13px; color:#94a3b8;">Изменение:</span>
+                <span style="color:${isUp ? '#22c55e' : '#ef4444'}; font-weight:700;">
+                    ${isUp ? '📈 +' : '📉 '}${change}%
+                </span>
+            </div>
+        `;
+    }
+    
+    content.innerHTML = `
+        <div style="display: flex; gap: 20px; flex-wrap: wrap;">
+            <!-- ЛЕВАЯ ЧАСТЬ - КАРТИНКА -->
+            <div style="flex: 1; min-width: 250px; text-align: center;">
+                <div style="
+                    background: linear-gradient(145deg, #0f1117, #1a1d27);
+                    border-radius: 16px;
+                    padding: 30px;
+                    border: 2px solid ${rarityColor};
+                    box-shadow: 0 0 40px ${rarityColor}33;
+                    min-height: 200px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                ">
+                    <img src="${skin.img}" alt="${skin.name}" style="
+                        max-width: 100%;
+                        max-height: 200px;
+                        object-fit: contain;
+                        filter: drop-shadow(0 10px 25px rgba(0,0,0,0.6));
+                    ">
+                </div>
+            </div>
+            
+            <!-- ПРАВАЯ ЧАСТЬ - ИНФО -->
+            <div style="flex: 1; min-width: 250px;">
+                <div style="
+                    display: inline-block;
+                    background: ${rarityColor};
+                    color: #000;
+                    padding: 3px 12px;
+                    border-radius: 12px;
+                    font-size: 11px;
+                    font-weight: 800;
+                    margin-bottom: 10px;
+                ">${skin.rarity}</div>
+                
+                <h2 style="font-size: 22px; margin-bottom: 4px;">${shortName}</h2>
+                <div style="font-size: 14px; color: #8a99ad; margin-bottom: 15px;">${skin.weapon}</div>
+                
+                <div style="
+                    background: #0f1117;
+                    border-radius: 10px;
+                    padding: 15px;
+                    border: 1px solid #1e293b;
+                    margin-bottom: 12px;
+                ">
+                    <div style="font-size: 12px; color: #94a3b8;">💰 Текущая цена</div>
+                    <div style="font-size: 26px; font-weight: 800; color: ${rarityColor};">
+                        ${skin.price} R
+                    </div>
+                    ${priceHistoryHTML}
+                </div>
+                
+                <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                    <button class="btn" onclick="buySkin(${skin.id}); closeSkinView();" style="flex: 1; min-width: 100px; padding: 12px;">
+                        🛒 КУПИТЬ
+                    </button>
+                    <button class="btn" onclick="openPriceChart(${skin.id})" style="flex: 1; min-width: 100px; padding: 12px; background: #f59e0b; color: #000;">
+                        📊 ГРАФИК
+                    </button>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    modal.classList.add('active');
+};
+
+window.closeSkinView = function() {
+    const modal = document.getElementById('skin-view-modal');
+    if (modal) modal.classList.remove('active');
+};
+
+// Закрытие по Escape
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') closeSkinView();
 });
 
 
