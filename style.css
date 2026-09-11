@@ -1065,3 +1065,46 @@ body {
     
     .modal-content { padding: 16px; width: 95%; max-width: 95%; }
     .
+
+
+   /* ==========================================
+   ЦВЕТА РЕДКОСТИ В КЕЙСАХ (РУЛЕТКА)
+   ========================================== */
+
+/* COMMON — Серый */
+.roulette-card.rarity-COMMON {
+    border-bottom: 4px solid #b0c3d9 !important;
+    background: linear-gradient(180deg, rgba(176, 195, 217, 0.08) 0%, var(--panel-bg) 100%) !important;
+}
+
+/* RARE — Синий */
+.roulette-card.rarity-RARE {
+    border-bottom: 4px solid #4b69ff !important;
+    background: linear-gradient(180deg, rgba(75, 105, 255, 0.1) 0%, var(--panel-bg) 100%) !important;
+}
+
+/* EPIC — Фиолетовый */
+.roulette-card.rarity-EPIC {
+    border-bottom: 4px solid #8847ff !important;
+    background: linear-gradient(180deg, rgba(136, 71, 255, 0.12) 0%, var(--panel-bg) 100%) !important;
+}
+
+/* LEGENDARY — Розовый */
+.roulette-card.rarity-LEGENDARY {
+    border-bottom: 4px solid #d32ce6 !important;
+    background: linear-gradient(180deg, rgba(211, 44, 230, 0.15) 0%, var(--panel-bg) 100%) !important;
+}
+
+/* SECRET — Красный */
+.roulette-card.rarity-SECRET {
+    border-bottom: 4px solid #eb4b4b !important;
+    background: linear-gradient(180deg, rgba(235, 75, 75, 0.18) 0%, var(--panel-bg) 100%) !important;
+    box-shadow: inset 0 0 20px rgba(235, 75, 75, 0.2) !important;
+}
+
+/* Названия скинов цветом редкости */
+.roulette-card.rarity-COMMON .roulette-card-title { color: #b0c3d9; }
+.roulette-card.rarity-RARE .roulette-card-title { color: #4b69ff; }
+.roulette-card.rarity-EPIC .roulette-card-title { color: #8847ff; }
+.roulette-card.rarity-LEGENDARY .roulette-card-title { color: #d32ce6; }
+.roulette-card.rarity-SECRET .roulette-card-title { color: #eb4b4b; }
