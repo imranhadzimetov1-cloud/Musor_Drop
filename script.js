@@ -573,13 +573,13 @@ function buildRouletteTrack() {
     winningSkin = getRandomSkinByChance(currentSpinCase.items);
     items[65] = winningSkin;
 
-    track.innerHTML = items.map(s => `
-        <div class="roulette-card rarity-${s.rarity}" style="min-width: ${cardWidth}px; max-width: ${cardWidth}px;">
-            <div style="font-size:9px; color:#8a99ad; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:100%;">${s.weapon}</div>
-            <div style="font-weight:bold; margin: 4px 0; font-size:10px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:100%;">${s.name.split('|')[1] || s.name}</div>
-            <img src="${s.img}" alt="${s.name}" style="max-height:60px; object-fit:contain;">
-        </div>
-    `).join('');
+track.innerHTML = items.map(s => `
+    <div class="roulette-card rarity-${s.rarity}">
+        <div style="font-size:9px; color:#8a99ad;">${s.weapon}</div>
+        <div style="font-weight:bold; margin: 4px 0; font-size:10px;">${s.name.split('|')[1] || s.name}</div>
+        <img src="${s.img}" style="max-height:60px; object-fit:contain;">
+    </div>
+`).join('');
 
     // Сохраняем ширину карточки для дальнейшего использования
     track.dataset.cardWidth = cardWidth;
