@@ -118,7 +118,7 @@ const SKINS_DATABASE = [
     { id: 117, weapon: "AK-47", name: "AK-47 | Emerald", rarity: "RARE", price: 25, img: "ak-emerald.png" },
     { id: 115, weapon: "M4A1-S", name: "M4A1-S | Savior", rarity: "RARE", price: 35, img: "m4a1-savior.png" },
     { id: 114, weapon: "AWP", name: "AWP | Gungnir", rarity: "RARE", price: 45, img: "awp-gungnir.png" },
-    { id: 119, weapon: "Desert Eagle", name: "Desert Eagle | Hampus", rarity: "EPIC", price: 18, img: "deagle-hampus.png" },
+    { id: 119, weapon: "Desert Eagle", name: "Desert Eagle | Hampus", rarity: "EPIC", price: 150, img: "deagle-hampus.png" },
     { id: 118, weapon: "Glock-18", name: "Glock-18 | Fowl Play", rarity: "RARE", price: 20, img: "glock-blue.png" },
     { id: 116, weapon: "USP-S", name: "USP-S | Ornament", rarity: "EPIC", price: 30, img: "usp-ornament.png" },
     { id: 120, weapon: "MAC-10", name: "MAC-10 | Blue Gem", rarity: "RARE", price: 15, img: "mac10-blue.png" },
