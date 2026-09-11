@@ -194,14 +194,14 @@ const CASES_DATABASE = [
         name: "Legendary Case", 
         price: 350, 
         img: "legend.webp",
-        items: SKINS_DATABASE.filter(s => ["LEGENDARY", "SECRET"].includes(s.rarity)) 
+        items: SKINS_DATABASE.filter(s => s.rarity === "LEGENDARY")  // ← ТОЛЬКО ЛЕГЕНДАРКИ
     },
     { 
         id: "secret", 
         name: "Secret Case", 
         price: 5000, 
         img: "secret.webp",
-        items: SKINS_DATABASE.filter(s => s.rarity === "SECRET" || s.price > 300) 
+        items: SKINS_DATABASE.filter(s => s.rarity === "SECRET")  // ← ТОЛЬКО СЕКРЕТКИ
     }
 ];
 // ==========================================
